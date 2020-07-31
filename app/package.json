@@ -1,13 +1,13 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "electron-react-boilerplate",
-  "version": "1.3.0",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
+  "name": "asm-data-manager",
+  "productName": "ASM Data Manager",
+  "version": "1.0.0",
+  "description": "This app allows easy conversion of data from Microsoft School Data Sync to Apple School Manager. Apart from that, it validates files, displays friendly preview, uploads the zip to SFTP, and archive files in a structured manner.",
   "main": "./main.prod.js",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "Jacek Pietsch",
+    "email": "info@platinumit.pl",
+    "url": "https://gitlab.com/jp_omniteq/asmdatamanager"
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
