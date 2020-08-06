@@ -16,6 +16,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 
+const { shell } = require('electron');
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -58,8 +60,12 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    minWidth: 800,
+    minHeight: 600,
+    width: 1280,
+    height: 800,
+    titleBarStyle: 'hiddenInset',
+    frame: false,
     webPreferences:
       (process.env.NODE_ENV === 'development' ||
         process.env.E2E_BUILD === 'true') &&
@@ -90,6 +96,11 @@ const createWindow = async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault();
+    shell.openExternal(url);
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
