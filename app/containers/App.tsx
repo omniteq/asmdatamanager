@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { Layout, Typography, ConfigProvider, Empty } from 'antd';
+import Header from '../components/Header';
 
-const { Header, Footer, Content } = Layout;
+const { Header: HeaderAnt, Footer, Content } = Layout;
 
 const { Text } = Typography;
 
@@ -13,16 +14,15 @@ export default function App(props: Props) {
   const { children } = props;
 
   const customizeRenderEmpty = () => (
-    <Empty
-      image={Empty.PRESENTED_IMAGE_SIMPLE}
-      description="Nie znaleziono folderów organizacji"
-    />
+    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Brak danych" />
   );
 
   return (
     <ConfigProvider renderEmpty={customizeRenderEmpty}>
       <Layout className="layout">
-        <Header className="header" />
+        <HeaderAnt className="header">
+          <Header />
+        </HeaderAnt>
         <Content className="content">{children}</Content>
         <Footer className="footer">
           <Text type="secondary">Jacek Pietsch ©2020</Text>

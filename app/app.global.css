@@ -6,7 +6,7 @@
 @import '~antd/dist/antd.css';
 
 .header {
-  height: 34px;
+  /* height: 34px; */
 
   /* background-color: #f0f2f5; */
   background-color: white;
@@ -26,7 +26,7 @@
 }
 
 .content {
-  padding: 0 48px;
+  padding: 12px 48px;
   overflow: scroll;
 }
 
@@ -34,4 +34,16 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.topmenu__li {
+  display: inline-block;
+}
+
+.topmenu__li:first-child {
+  padding: 0 24px;
+}
+
+.hidden {
+  display: none;
 }

@@ -1,10 +1,17 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { Typography, Button, Input, Divider, Row, Select } from 'antd';
+import { Typography, Button, Input, Divider, Row, Select, message } from 'antd';
 import { RightOutlined, PlusOutlined } from '@ant-design/icons';
+import { LabeledValue } from 'antd/lib/select';
 import routes from '../constants/routes.json';
 import styles from './Home.css';
 import Progress from './Progress';
+import initMainFolder, {
+  getOrganizations,
+  addOrganization,
+  Organization,
+} from '../services/files';
 
 const { Option } = Select;
 
@@ -13,14 +20,27 @@ const { Title, Link: LinkAnt } = Typography;
 const index = 0;
 
 export default function Home(): JSX.Element {
-  const [organizations, setOrganizations] = useState<string[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>(
+    getOrganizations()
+  );
   const [name, setName] = useState<string>();
+  const [currentOrganization, setCurrentOrganization] = useState(
+    JSON.parse(localStorage!.getItem('organization')!)
+  );
   const history = useHistory();
+  // const currentOrganization = JSON.parse(
+  //   localStorage!.getItem('organization')!
+  // );
 
-  const currentOrganization = localStorage.getItem('organization');
+  initMainFolder();
 
-  const onSelect = (event: any) => {
-    localStorage.setItem('organization', event);
+  const onSelect = (event: LabeledValue) => {
+    const organization = {
+      name: event.label,
+      folderName: event.value,
+    };
+    setCurrentOrganization(organization);
+    localStorage.setItem('organization', JSON.stringify(organization));
   };
 
   const onNameChange = (event: any) => {
@@ -28,9 +48,18 @@ export default function Home(): JSX.Element {
   };
 
   const addItem = () => {
-    console.log('addItem');
-
-    setOrganizations([...organizations, name || `Organizacja ${index + 1}`]);
+    if (name) {
+      try {
+        const organization = addOrganization(name);
+        setName('');
+        setOrganizations([
+          ...organizations,
+          organization || `Organizacja ${index + 1}`,
+        ]);
+      } catch (error) {
+        message.warning('Istnieje juz organizacja o tej samej nazwie');
+      }
+    }
   };
 
   const onClick = () => {
@@ -46,14 +75,21 @@ export default function Home(): JSX.Element {
           </Title>
         </Row>
         <Row justify="center">
-          <LinkAnt href="https://omniteq.pl">
+          <LinkAnt href="https://omniteq.pl/docs/asmdatamanager">
             Dokumentacja i wsparcie
             <RightOutlined />
           </LinkAnt>
         </Row>
         <Row justify="center" style={{ padding: '48px 0px' }}>
           <Select
-            defaultValue={currentOrganization || ''}
+            labelInValue
+            defaultValue={
+              (currentOrganization && {
+                label: currentOrganization.name,
+                value: currentOrganization.foldername,
+              }) ||
+              ''
+            }
             onSelect={onSelect}
             dropdownRender={(menu) => (
               <div>
@@ -67,19 +103,14 @@ export default function Home(): JSX.Element {
                     value={name}
                     onChange={onNameChange}
                   />
-                  <button
-                    type="button"
-                    style={{
-                      flex: 'none',
-                      padding: '8px',
-                      display: 'block',
-                      cursor: 'pointer',
-                    }}
+                  <Button
+                    type="primary"
                     onClick={addItem}
+                    disabled={(!name || name.length < 4) && true}
                   >
                     <PlusOutlined />
                     Dodaj
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -87,8 +118,14 @@ export default function Home(): JSX.Element {
             style={{ width: '50%', minWidth: '400px' }}
             placeholder="Wybierz organizację"
           >
-            {organizations.map((item) => (
-              <Option key={item}>{item}</Option>
+            {organizations.map((item: Organization) => (
+              <Option
+                label={item.name}
+                value={item.folderName}
+                key={item.folderName}
+              >
+                {item.name}
+              </Option>
             ))}
           </Select>
         </Row>
@@ -99,6 +136,7 @@ export default function Home(): JSX.Element {
             href="/wybor-plikow"
             style={{ padding: '0 24px' }}
             onClick={onClick}
+            disabled={!currentOrganization && true}
           >
             Przejdź do wyboru plików
           </Button>
