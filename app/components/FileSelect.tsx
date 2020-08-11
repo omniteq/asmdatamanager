@@ -29,9 +29,11 @@ const path = require('path');
 const { Title, Text, Link: LinkAnt } = Typography;
 const { Dragger } = Upload;
 
-// type FileList = {
-//   fileList: [{ uid: string; name: string; status: string; url: string }];
-// };
+type NewFiles = {
+  filePaths: string[];
+  fileList: UploadFile<any>[];
+  fileNames: string[];
+};
 
 export default function FileSelect() {
   // console.log(process.arch);
@@ -39,20 +41,26 @@ export default function FileSelect() {
   const [hidden, setHidden] = useState(true);
   const organization = JSON.parse(localStorage!.getItem('organization')!);
   const [newFilesOk, setNewFilesOk] = useState<boolean>();
+
+  const [newFiles, setNewFiles] = useState<NewFiles | null>(
+    JSON.parse(localStorage!.getItem('newFiles')!)
+  );
+
   // TODO: replace with reducer
-  const [newFiles, setNewFiles] = useState<Array<string>>(
-    JSON.parse(localStorage.getItem('newFiles')!)
-  );
-  const [newFileNames, setNewFileNames] = useState<string[] | null>(
-    newFiles?.length > 0
-      ? newFiles.map((file) => {
-          return path.basename(file);
-        })
-      : null
-  );
-  const [fileList, setFileList] = useState<UploadFile<any>[]>(
-    JSON.parse(localStorage.getItem('newFileList')!)
-  );
+  // const [newFiles, setNewFiles] = useState<Array<string>>(
+  //   JSON.parse(localStorage.getItem('newFiles')!)
+  // );
+  // const [newFileNames, setNewFileNames] = useState<string[] | null>(
+  //   newFiles?.length > 0
+  //     ? newFiles.map((file) => {
+  //         return path.basename(file);
+  //       })
+  //     : null
+  // );
+  // const [fileList, setFileList] = useState<UploadFile<any>[]>(
+  //   JSON.parse(localStorage.getItem('newFileList')!)
+  // );
+
   const [oldFiles, setOldFiles] = useState<
     string | number | LabeledValue | null
   >(localStorage.getItem('oldFiles'));
@@ -65,25 +73,18 @@ export default function FileSelect() {
       const file = item.originFileObj as File;
       return file.path;
     });
+    const fileNames = filePaths.map((file) => {
+      return path.basename(file);
+    });
     if (status !== 'uploading') {
-      setNewFiles(filePaths);
-      setNewFileNames(
-        filePaths.map((file) => {
-          return path.basename(file);
-        })
-      );
+      setNewFiles({ filePaths, fileNames, fileList: info.fileList.slice(-6) });
+      localStorage.setItem('newFiles', JSON.stringify(newFiles));
     }
     if (status === 'done') {
       message.success(`${info.file.name} plik załadowany pomyślnie.`);
     } else if (status === 'error') {
       message.error(`${info.file.name} plik nie może być załadowany.`);
     }
-    setFileList(info.fileList.slice(-6));
-    localStorage.setItem('newFiles', JSON.stringify(filePaths));
-    localStorage.setItem(
-      'newFileList',
-      JSON.stringify(info.fileList.slice(-6))
-    );
   };
 
   const deleteNewFile = (index: number) => {
