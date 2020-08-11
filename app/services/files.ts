@@ -1,9 +1,12 @@
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import string from 'string-sanitizer';
-
-const encoding = require('encoding-japanese');
+import { RcFile } from 'antd/lib/upload/interface';
+// import parse from 'csv-parse/lib/sync';
+// import { AsmFile } from 'files';
+import CSVFileValidator from 'csv-file-validator';
+import getConfig from './validatorConfig';
+import db from './db';
 
 const { remote } = require('electron');
 
@@ -60,11 +63,36 @@ export function addOrganization(name: string) {
   return { name, folderName: sanitizedName };
 }
 
-export function validateFile(filePath: string) {
+export function getErrorDesc(error: string) {
+  switch (error) {
+    case 'UTF8':
+      return 'Niepoprawne kodowanie. Wymagane kodowanie to UTF-8.';
+    case 'FILENAME':
+      return 'Niepoprawna nazwa pliku. Dozwolone są nazwy zgodne ze standardem Apple ASM lub Microsoft School Data Sync';
+    case 'FILETYPE':
+      return 'Niepoprawny typ pliku. Dozwolone są pliki w formacie csv.';
+    default:
+      return 'Nieznany błąd';
+  }
+}
+
+function insertData(file: RcFile) {
+  // const csv = fs.readFileSync(file.path);
+  // const records: AsmFile[] = parse(csv, {
+  //   columns: true,
+  //   skip_empty_lines: true,
+  // });
+  // console.log(records);
+  // records.forEach((arguments) => statement)
+}
+
+export function validateFile(file: RcFile) {
+  // const filePath = file.path;
+
   const allowedFileNamesASM = [
     'students.csv',
     'staff.csv',
-    'clases.csv',
+    'classes.csv',
     'rosters.csv',
     'courses.csv',
     'locations.csv',
@@ -78,16 +106,37 @@ export function validateFile(filePath: string) {
     'teacherroster.csv',
   ];
   const allowedFileNames = [...allowedFileNamesASM, ...allowedFileNamesMS];
-  if (allowedFileNames.indexOf(path.basename(filePath)) > -1) {
-    const fileBuffer = fs.readFileSync(filePath);
-    const charsetMatch = encoding.detect(fileBuffer);
-    console.log(charsetMatch);
-    if (charsetMatch === 'UTF8') {
-      console.log('is UTF8');
-    } else {
-      console.log(charsetMatch);
-    }
-  } else {
-    console.log('niedozwolona nazwa pliku');
+
+  const validationErrors = [];
+
+  // validate file name
+  if (allowedFileNames.indexOf(path.basename(file.name.toLowerCase())) === -1) {
+    validationErrors.push('FILENAME');
   }
+
+  // validate encoding
+  // tried two different packages, none of them works
+  // const fileBuffer = fs.readFileSync(filePath);
+  // const charsetMatch = detectCharacterEncoding(fileBuffer);
+  // if (charsetMatch !== 'UTF8') {
+  //   validationErrors.push('UTF8');
+  // }
+
+  // validate file type
+  if (file.type !== 'text/csv') {
+    validationErrors.push('FILETYPE');
+  }
+
+  if (validationErrors.length < 1) {
+    CSVFileValidator(file, getConfig(file.name))
+      .then((csvData: any) => {
+        console.log(csvData); // Array of objects from file
+        return csvData;
+      })
+      .catch((err: any) => {});
+  }
+
+  insertData(file);
+
+  return validationErrors;
 }

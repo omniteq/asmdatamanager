@@ -10,6 +10,7 @@ import {
   Alert,
   Select,
   Button,
+  Modal,
 } from 'antd';
 import {
   InboxOutlined,
@@ -17,73 +18,96 @@ import {
   DownloadOutlined,
 } from '@ant-design/icons';
 import { UploadChangeParam } from 'antd/lib/upload';
-import { UploadFile } from 'antd/lib/upload/interface';
+import { UploadFile, RcFile } from 'antd/lib/upload/interface';
 import { LabeledValue } from 'antd/lib/select';
 import Progress from './Progress';
 import { validateFile } from '../services/files';
+import ValidationError from './ValidationError';
 
 const { Option } = Select;
-
-const path = require('path');
 
 const { Title, Text, Link: LinkAnt } = Typography;
 const { Dragger } = Upload;
 
-type NewFiles = {
-  filePaths: string[];
-  fileList: UploadFile<any>[];
-  fileNames: string[];
-};
+// type NewFiles = UploadFile<any> & { path: string };
 
 export default function FileSelect() {
-  // console.log(process.arch);
   const history = useHistory();
   const [hidden, setHidden] = useState(true);
   const organization = JSON.parse(localStorage!.getItem('organization')!);
   const [newFilesOk, setNewFilesOk] = useState<boolean>();
 
-  const [newFiles, setNewFiles] = useState<NewFiles | null>(
+  const [newFiles, setNewFiles] = useState<NewFiles[] | undefined>(
     JSON.parse(localStorage!.getItem('newFiles')!)
   );
-
-  // TODO: replace with reducer
-  // const [newFiles, setNewFiles] = useState<Array<string>>(
-  //   JSON.parse(localStorage.getItem('newFiles')!)
-  // );
-  // const [newFileNames, setNewFileNames] = useState<string[] | null>(
-  //   newFiles?.length > 0
-  //     ? newFiles.map((file) => {
-  //         return path.basename(file);
-  //       })
-  //     : null
-  // );
-  // const [fileList, setFileList] = useState<UploadFile<any>[]>(
-  //   JSON.parse(localStorage.getItem('newFileList')!)
-  // );
 
   const [oldFiles, setOldFiles] = useState<
     string | number | LabeledValue | null
   >(localStorage.getItem('oldFiles'));
 
-  const onFileChange = (info: UploadChangeParam<UploadFile<any>>) => {
-    validateFile((info?.file?.originFileObj as File).path);
+  const wrongFilesUid: string[] = [];
 
-    const { status } = info.file;
-    const filePaths = info.fileList.map((item) => {
-      const file = item.originFileObj as File;
-      return file.path;
-    });
-    const fileNames = filePaths.map((file) => {
-      return path.basename(file);
-    });
-    if (status !== 'uploading') {
-      setNewFiles({ filePaths, fileNames, fileList: info.fileList.slice(-6) });
-      localStorage.setItem('newFiles', JSON.stringify(newFiles));
+  const onBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
+    // console.log(file);
+    // console.log(fileList);
+
+    if (fileList[0].uid === file.uid) {
+      const filesListWithErrors = fileList.map((item) => {
+        const validationErrors = validateFile(item);
+        const fileWithErrors: {
+          file: RcFile;
+          validationErrors: string[];
+        } = {
+          file: item,
+          validationErrors,
+        };
+        // console.log('fileWithErrors', fileWithErrors);
+        return fileWithErrors;
+      });
+      // console.log(filesListWithErrors);
+      const wrongFiles = filesListWithErrors.filter(
+        (item) => item.validationErrors.length > 0
+      );
+      // console.log(wrongFiles);
+      if (wrongFiles.length > 0) {
+        Modal.error({
+          width: '700px',
+          title: 'Niepoprawne pliki',
+          content: <ValidationError wrongFiles={wrongFiles} />,
+        });
+      }
+      wrongFiles.forEach((item: { file: RcFile; validationErrors: string[] }) =>
+        wrongFilesUid.push(item.file.uid)
+      );
     }
-    if (status === 'done') {
-      message.success(`${info.file.name} plik załadowany pomyślnie.`);
-    } else if (status === 'error') {
-      message.error(`${info.file.name} plik nie może być załadowany.`);
+    if (wrongFilesUid.indexOf(file.uid) === -1) {
+      return true;
+    }
+    return false;
+  };
+
+  const onFileChange = (info: UploadChangeParam<UploadFile<any>>) => {
+    if (info.file.status) {
+      const { status } = info.file;
+      const filePath = (info!.file!.originFileObj as File).path;
+      const fileListWithPaths = info.fileList.map((file) => {
+        const fileWithPath: UploadFile<any> & { path: string } = {
+          ...file,
+          path: filePath,
+        };
+        return fileWithPath;
+      });
+
+      if (status === 'done') {
+        message.success(`${info.file.name} plik załadowany pomyślnie.`);
+      } else if (status === 'error') {
+        message.error(`${info.file.name} plik nie może być załadowany.`);
+      }
+      localStorage.setItem(
+        'newFiles',
+        JSON.stringify(fileListWithPaths.slice(-6))
+      );
+      setNewFiles(fileListWithPaths.slice(-6));
     }
   };
 
@@ -92,17 +116,7 @@ export default function FileSelect() {
       (value, arrIndex) => arrIndex !== index
     );
 
-    const newFileNamesFiltered = newFileNames!.filter(
-      (value, arrIndex) => arrIndex !== index
-    );
-
-    const fileListFiltered = fileList!.filter(
-      (value, arrIndex) => arrIndex !== index
-    );
-
-    setNewFileNames(newFileNamesFiltered);
     setNewFiles(newFilesFiltered);
-    setFileList(fileListFiltered);
     localStorage.setItem('newFiles', JSON.stringify(newFilesFiltered));
   };
 
@@ -143,15 +157,12 @@ export default function FileSelect() {
             .
           </Text>
         </Row>
-        <Row
-          align="top"
-          gutter={48}
-          // justify="center"
-          style={{ padding: '18px 0px' }}
-        >
+        <Row align="top" gutter={48} style={{ padding: '18px 0px' }}>
           <Col>
             <Dragger
-              fileList={fileList}
+              accept="text/csv"
+              beforeUpload={onBeforeUpload}
+              fileList={newFiles}
               style={{
                 padding: '12px',
                 minWidth: '600px',
@@ -172,13 +183,14 @@ export default function FileSelect() {
                 </p>
               ) : (
                 <p className="ant-upload-text">
-                  Kliknij lub upuść pliki w tym miejscu
+                  Kliknij lub upuść pliki w tym miejscu pliki{' '}
+                  <Text strong>CSV</Text>
                 </p>
               )}
             </Dragger>
           </Col>
           <Col>
-            {newFileNames && (
+            {newFiles && (
               <List
                 className="newFilesList"
                 header={
@@ -187,7 +199,7 @@ export default function FileSelect() {
                     <DownloadOutlined style={{ padding: '0 12px' }} />
                   </div>
                 }
-                dataSource={newFileNames}
+                dataSource={newFiles}
                 renderItem={(item, index) => (
                   <List.Item
                     onMouseOver={() => setHidden(false)}
@@ -200,7 +212,7 @@ export default function FileSelect() {
                       />,
                     ]}
                   >
-                    {item}
+                    {item.name}
                   </List.Item>
                 )}
               />
