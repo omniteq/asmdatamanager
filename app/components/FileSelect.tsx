@@ -21,7 +21,7 @@ import { UploadChangeParam } from 'antd/lib/upload';
 import { UploadFile, RcFile } from 'antd/lib/upload/interface';
 import { LabeledValue } from 'antd/lib/select';
 import Progress from './Progress';
-import { validateFile } from '../services/files';
+import { isValidFile } from '../services/files';
 import ValidationError from './ValidationError';
 
 const { Option } = Select;
@@ -29,7 +29,12 @@ const { Option } = Select;
 const { Title, Text, Link: LinkAnt } = Typography;
 const { Dragger } = Upload;
 
-// type NewFiles = UploadFile<any> & { path: string };
+type FileWithError = {
+  file: RcFile;
+  validationErrors: string[];
+};
+
+type NewFiles = UploadFile<any> & { path: string };
 
 export default function FileSelect() {
   const history = useHistory();
@@ -52,31 +57,33 @@ export default function FileSelect() {
     // console.log(fileList);
 
     if (fileList[0].uid === file.uid) {
-      const filesListWithErrors = fileList.map((item) => {
-        const validationErrors = validateFile(item);
-        const fileWithErrors: {
-          file: RcFile;
-          validationErrors: string[];
-        } = {
-          file: item,
-          validationErrors,
-        };
-        // console.log('fileWithErrors', fileWithErrors);
-        return fileWithErrors;
+      const filesListValidated = fileList.map((item) => {
+        const isValid = isValidFile(item);
+        if (isValid !== true) {
+          const fileWithErrors: FileWithError = {
+            file: item,
+            validationErrors: isValid,
+          };
+          // console.log('fileWithErrors', fileWithErrors);
+          return fileWithErrors;
+        }
+        return item;
       });
       // console.log(filesListWithErrors);
-      const wrongFiles = filesListWithErrors.filter(
-        (item) => item.validationErrors.length > 0
-      );
+      const wrongFiles = filesListValidated.filter((item) => {
+        return Object.prototype.hasOwnProperty.call(item, 'validationErrors');
+      });
       // console.log(wrongFiles);
       if (wrongFiles.length > 0) {
         Modal.error({
           width: '700px',
           title: 'Niepoprawne pliki',
-          content: <ValidationError wrongFiles={wrongFiles} />,
+          content: (
+            <ValidationError wrongFiles={wrongFiles as FileWithError[]} />
+          ),
         });
       }
-      wrongFiles.forEach((item: { file: RcFile; validationErrors: string[] }) =>
+      (wrongFiles as FileWithError[]).forEach((item: FileWithError) =>
         wrongFilesUid.push(item.file.uid)
       );
     }

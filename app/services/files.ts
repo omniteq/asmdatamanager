@@ -86,7 +86,7 @@ function insertData(file: RcFile) {
   // records.forEach((arguments) => statement)
 }
 
-export function validateFile(file: RcFile) {
+export function isValidFile(file: RcFile) {
   // const filePath = file.path;
 
   const allowedFileNamesASM = [
@@ -138,5 +138,12 @@ export function validateFile(file: RcFile) {
 
   insertData(file);
 
-  return validationErrors;
+  if (validationErrors.length > 0) {
+    return validationErrors;
+  }
+  return true;
 }
+
+// export function vlidateFileData(file: RcFile){
+
+// }
