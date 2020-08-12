@@ -11,6 +11,7 @@ import {
   Select,
   Button,
   Modal,
+  notification,
 } from 'antd';
 import {
   InboxOutlined,
@@ -18,10 +19,15 @@ import {
   DownloadOutlined,
 } from '@ant-design/icons';
 import { UploadChangeParam } from 'antd/lib/upload';
-import { UploadFile, RcFile } from 'antd/lib/upload/interface';
+import { UploadFile, RcFile, UploadProps } from 'antd/lib/upload/interface';
 import { LabeledValue } from 'antd/lib/select';
 import Progress from './Progress';
-import { isValidFile, validateFileData } from '../services/files';
+import {
+  validateFile,
+  validateFileData,
+  // validateFileList,
+  // validateFileListData,
+} from '../services/files';
 import ValidationError, {
   FileWithDataValidation,
   FileWithError,
@@ -48,93 +54,48 @@ export default function FileSelect() {
     string | number | LabeledValue | null
   >(localStorage.getItem('oldFiles'));
 
-  const wrongFilesUid: string[] = [];
+  let wrongFiles: FileWithError[] = [];
+  let wrongFilesData: FileWithDataValidation[] = [];
 
-  const onBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
-    // console.log(file);
-    // console.log(fileList);
-    console.log(newFiles);
+  const displayErros = (
+    wrongFilesDis: FileWithError[],
+    wrongFilesDataDis: FileWithDataValidation[]
+  ) => {
+    Modal.error({
+      width: '700px',
+      title: 'Niepoprawne pliki',
+      content: (
+        <ValidationError
+          wrongFiles={wrongFilesDis as FileWithError[]}
+          wrongData={wrongFilesDataDis as FileWithDataValidation[]}
+        />
+      ),
+    });
+  };
 
-    if (fileList[0].uid === file.uid) {
-      const fileListValidated = fileList.map((item) => {
-        const isValid = isValidFile(item);
-        console.log('isValid', isValid);
-        if (isValid !== true) {
-          const fileWithErrors: FileWithError = {
-            file: item,
-            validationErrors: isValid,
-          };
-          console.log('fileWithErrors', fileWithErrors);
-          return fileWithErrors;
-        }
-        return item;
-      });
-      // console.log(filesListWithErrors);
-      const wrongFiles = fileListValidated.filter((item) => {
-        console.log(
-          'fileListValidated.filter',
-          item,
-          Object.prototype.hasOwnProperty.call(item, 'validationErrors')
-        );
-        return Object.prototype.hasOwnProperty.call(item, 'validationErrors');
-      });
-      // console.log(wrongFiles);
+  const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
+    const validFile = validateFile(file);
+    let reject = false;
 
-      const validFiles = fileListValidated.filter((item) => {
-        return !Object.prototype.hasOwnProperty.call(item, 'validationErrors');
-      });
-      // console.log(validFiles);
-      const dataValidationResults = async () => {
-        return Promise.all(
-          validFiles.map((item) => {
-            return validateFileData(item as RcFile);
-          })
-        );
-      };
-
-      dataValidationResults()
-        .then((result) => {
-          console.log(result);
-          const wrongDataFiles = result.filter((item) => {
-            return (
-              (item as FileWithDataValidation).result.inValidMessages.length > 0
-            );
-          });
-          // console.log(wrongDataFileList);
-          if (wrongFiles.length > 0 || wrongDataFiles) {
-            (wrongDataFiles as FileWithDataValidation[]).forEach((item) => {
-              wrongFilesUid.push(item.file.uid);
-            });
-
-            Modal.error({
-              width: '700px',
-              title: 'Niepoprawne pliki',
-              content: (
-                <ValidationError
-                  wrongFiles={wrongFiles as FileWithError[]}
-                  wrongData={wrongDataFiles as FileWithDataValidation[]}
-                />
-              ),
-            });
-          }
-          // retrun from cb
-          return true;
-        })
-        .catch((err) => err);
-
-      (wrongFiles as FileWithError[]).forEach((item: FileWithError) => {
-        wrongFilesUid.push(item.file.uid);
-        console.log('wrongFilesUid.push', wrongFilesUid);
-      });
-
-      console.log('wrongFiles', wrongFiles);
+    if (validFile === true) {
+      const validFileData = await validateFileData(file);
+      if (validFileData.result.inValidMessages.length > 0) {
+        wrongFilesData.push(validFileData);
+        reject = true;
+      }
+    } else {
+      wrongFiles.push({ file, validationErrors: validFile });
+      reject = true;
     }
-    console.log('wrongFilesUid', wrongFilesUid);
-    console.log(file.uid);
-    if (wrongFilesUid.indexOf(file.uid) === -1) {
-      return true;
+
+    if (fileList[fileList.length - 1].uid === file.uid) {
+      displayErros(wrongFiles, wrongFilesData);
+      wrongFilesData = [];
+      wrongFiles = [];
     }
-    return false;
+
+    if (reject) return Promise.reject(new Error('Nieperawidłowy plik'));
+    return Promise.resolve();
   };
 
   const onFileChange = (info: UploadChangeParam<UploadFile<any>>) => {
@@ -150,7 +111,10 @@ export default function FileSelect() {
       });
 
       if (status === 'done') {
-        message.success(`${info.file.name} plik załadowany pomyślnie.`);
+        notification.success({
+          message: info.file.name,
+          description: 'plik poprawny',
+        });
       } else if (status === 'error') {
         message.error(`${info.file.name} plik nie może być załadowany.`);
       }

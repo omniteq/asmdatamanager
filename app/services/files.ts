@@ -86,7 +86,7 @@ function insertData(file: RcFile) {
   // records.forEach((arguments) => statement)
 }
 
-export function isValidFile(file: RcFile) {
+export function validateFile(file: RcFile) {
   // const filePath = file.path;
 
   const allowedFileNamesASM = [
@@ -135,17 +135,58 @@ export function isValidFile(file: RcFile) {
   return true;
 }
 
+// export function validateFileList(fileList: RcFile[]) {
+//   const validatedFiles = fileList.map((item) => {
+//     const isValid = validateFile(item);
+//     if (isValid !== true) {
+//       const fileWithErrors: FileWithError = {
+//         file: item,
+//         validationErrors: isValid,
+//       };
+//       return fileWithErrors;
+//     }
+//     return item;
+//   });
+
+//   const wrongFiles = validatedFiles.filter((item) => {
+//     return Object.prototype.hasOwnProperty.call(item, 'validationErrors');
+//   });
+
+//   const validFiles = validatedFiles.filter((item) => {
+//     return !Object.prototype.hasOwnProperty.call(item, 'validationErrors');
+//   });
+
+//   return { wrongFiles, validFiles };
+// }
+
 export async function validateFileData(file: RcFile) {
   try {
     const result = await CSVFileValidator(file, getConfig(file.name));
     return { result, file };
   } catch (error) {
     console.error(error);
+    return Promise.reject(new Error('Invalid data'));
   }
-  // .then((csvData: any) => {
-  //   return csvData;
-  // })
-  // .catch((err: any) => {});
-
-  return true;
 }
+
+// export async function validateFileListData(
+//   fileList: RcFile[],
+//   wrongOnly: boolean
+// ) {
+//   const validateList = async () => {
+//     return Promise.all(
+//       fileList.map((item) => {
+//         return validateFileData(item as RcFile);
+//       })
+//     );
+//   };
+//   const result = await validateList();
+
+//   if (wrongOnly) {
+//     return result.filter((item) => {
+//       return (item as FileWithDataValidation).result.inValidMessages.length > 0;
+//     });
+//   }
+
+//   return result;
+// }
