@@ -127,15 +127,6 @@ export function isValidFile(file: RcFile) {
     validationErrors.push('FILETYPE');
   }
 
-  if (validationErrors.length < 1) {
-    CSVFileValidator(file, getConfig(file.name))
-      .then((csvData: any) => {
-        console.log(csvData); // Array of objects from file
-        return csvData;
-      })
-      .catch((err: any) => {});
-  }
-
   insertData(file);
 
   if (validationErrors.length > 0) {
@@ -144,6 +135,17 @@ export function isValidFile(file: RcFile) {
   return true;
 }
 
-// export function vlidateFileData(file: RcFile){
+export async function validateFileData(file: RcFile) {
+  try {
+    const result = await CSVFileValidator(file, getConfig(file.name));
+    return { result, file };
+  } catch (error) {
+    console.error(error);
+  }
+  // .then((csvData: any) => {
+  //   return csvData;
+  // })
+  // .catch((err: any) => {});
 
-// }
+  return true;
+}

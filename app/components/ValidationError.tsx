@@ -5,13 +5,21 @@ import { getErrorDesc } from '../services/files';
 
 const { Text, Link: LinkAnt } = Typography;
 
+export type FileWithError = {
+  file: RcFile;
+  validationErrors: string[];
+};
+
+export type FileWithDataValidation = {
+  result: any;
+  file: RcFile;
+};
+
 export default function ValidationError(props: {
-  wrongFiles: {
-    file: RcFile;
-    validationErrors: string[];
-  }[];
+  wrongFiles: FileWithError[];
+  wrongData: FileWithDataValidation[];
 }) {
-  const { wrongFiles } = props;
+  const { wrongFiles, wrongData } = props;
 
   return (
     <>
@@ -48,6 +56,26 @@ export default function ValidationError(props: {
                   return (
                     <li key={error}>
                       <Text>{errorDesc}</Text>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Space>
+          </div>
+        );
+      })}
+      {wrongData.map((item) => {
+        return (
+          <div key={item.file.uid}>
+            <Divider />
+            <Space direction="vertical" size="small">
+              <Text strong>{item.file.name}</Text>
+              <Text>{item.file.path}</Text>
+              <ul>
+                {item.result.inValidMessages.map((error: string) => {
+                  return (
+                    <li key={error}>
+                      <Text>{error}</Text>
                     </li>
                   );
                 })}
