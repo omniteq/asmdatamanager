@@ -22,7 +22,7 @@ export default function Header() {
       title: 'Wyczyścić ustawienia i rozpocząć od nowa?',
       icon: <ExclamationCircleOutlined />,
       content:
-        'Aktualne ustawienia kreatora wysyłki zostaną wyczyszczone. Żande pliki nie zostaną usunięte.',
+        'Aktualne ustawienia kreatora wysyłki zostaną wyczyszczone. Żande pliki nie zostaną usunięte z Twojego dysku.',
       onOk() {
         restart();
       },

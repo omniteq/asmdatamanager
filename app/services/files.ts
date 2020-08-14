@@ -7,6 +7,7 @@ import { RcFile } from 'antd/lib/upload/interface';
 import CSVFileValidator from 'csv-file-validator';
 import getConfig from './validatorConfig';
 import db from './db';
+import { allowedFileNames } from './const';
 
 const { remote } = require('electron');
 
@@ -88,24 +89,6 @@ function insertData(file: RcFile) {
 
 export function validateFile(file: RcFile) {
   // const filePath = file.path;
-
-  const allowedFileNamesASM = [
-    'students.csv',
-    'staff.csv',
-    'classes.csv',
-    'rosters.csv',
-    'courses.csv',
-    'locations.csv',
-  ];
-  const allowedFileNamesMS = [
-    'student.csv',
-    'teacher.csv',
-    'school.csv',
-    'section.csv',
-    'studentenrollment.csv',
-    'teacherroster.csv',
-  ];
-  const allowedFileNames = [...allowedFileNamesASM, ...allowedFileNamesMS];
 
   const validationErrors = [];
 

@@ -74,6 +74,10 @@ export default function FileSelect() {
   };
 
   const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
+    // TODO: przechowywać zaimportowane dane w stanie
+    // TODO: walidacja relacji fk pk po ostatnim pliku kiedy jest komplet przez js lub sql
+    // TODO: blokada mieszania typów ms apple
+    // TODO: import danych do bazy
     const validFile = validateFile(file);
     let reject = false;
 
@@ -112,8 +116,9 @@ export default function FileSelect() {
 
       if (status === 'done') {
         notification.success({
+          placement: 'bottomRight',
           message: info.file.name,
-          description: 'plik poprawny',
+          style: { width: '100%' },
         });
       } else if (status === 'error') {
         message.error(`${info.file.name} plik nie może być załadowany.`);
@@ -191,17 +196,17 @@ export default function FileSelect() {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              {newFiles?.length === 6 ? (
+              {/* {newFiles?.length === 6 ? (
                 <p className="ant-upload-text">
                   Sześć wymaganych plików zostało załadowanych. Usuń pliki jeśli
                   chcesz je zmienić.
                 </p>
-              ) : (
-                <p className="ant-upload-text">
-                  Kliknij lub upuść pliki w tym miejscu pliki{' '}
-                  <Text strong>CSV</Text>
-                </p>
-              )}
+              ) : ( */}
+              <p className="ant-upload-text">
+                Kliknij lub upuść pliki w tym miejscu pliki{' '}
+                <Text strong>CSV</Text>
+              </p>
+              {/* )} */}
             </Dragger>
           </Col>
           <Col>
