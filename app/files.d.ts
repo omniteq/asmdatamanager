@@ -35,7 +35,7 @@ declare module 'files' {
     course_name?: string | null;
     location_id: string;
   };
-  export type AsmClass = {
+  type AsmClass = {
     class_id: string;
     class_number?: string | null;
     course_id: string;
@@ -44,16 +44,39 @@ declare module 'files' {
     instructor_id_3?: string | null;
     location_id: string;
   };
-  export type AsmRoster = {
+  type AsmRoster = {
     roster_id: string;
     class_id: string;
     student_id: string;
   };
 
-  export type AsmFile = AsmClass &
-    AsmCourse &
-    AsmLocation &
-    AsmStaff &
-    AsmStudent &
-    AsmRoster;
+  export type AsmFile =
+    | AsmClass
+    | AsmCourse
+    | AsmLocation
+    | AsmStaff
+    | AsmStudent
+    | AsmRoster;
+
+  type FileNamesASM =
+    | 'students'
+    | 'staff'
+    | 'classes'
+    | 'rosters'
+    | 'courses'
+    | 'locations';
+  type FileNamesMS =
+    | 'Student'
+    | 'Teacher'
+    | 'School'
+    | 'Section'
+    | 'StudentEnrollment'
+    | 'TeacherRoster';
+
+  export type FilesData = {
+    [key in FileNamesASM | FileNamesMS]?: {
+      inValidMessages: [];
+      data: AsmFile[];
+    };
+  }[];
 }

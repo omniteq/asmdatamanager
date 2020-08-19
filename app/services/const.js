@@ -1,3 +1,5 @@
+import path from 'path';
+
 const allowedFileNamesASM = [
   'students.csv',
   'staff.csv',
@@ -7,13 +9,26 @@ const allowedFileNamesASM = [
   'locations.csv',
 ];
 const allowedFileNamesMS = [
-  'student.csv',
-  'teacher.csv',
-  'school.csv',
-  'section.csv',
-  'studentenrollment.csv',
-  'teacherroster.csv',
+  'Student.csv',
+  'Teacher.csv',
+  'School.csv',
+  'Section.csv',
+  'StudentEnrollment.csv',
+  'TeacherRoster.csv',
 ];
+const allowedFileNamesASMNoExt = allowedFileNamesASM.map(
+  (i) => path.parse(i).name
+);
+const allowedFileNamesMSLowerNoExt = allowedFileNamesMS.map(
+  (i) => path.parse(i).name
+);
+
 const allowedFileNames = [...allowedFileNamesASM, ...allowedFileNamesMS];
 
-export { allowedFileNames, allowedFileNamesASM, allowedFileNamesMS };
+export {
+  allowedFileNames,
+  allowedFileNamesASM,
+  allowedFileNamesMS,
+  allowedFileNamesASMNoExt,
+  allowedFileNamesMSLowerNoExt,
+};

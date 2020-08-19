@@ -57,13 +57,30 @@ const requiredConstrains = (maxLenght: number) => {
   };
 };
 
-const optionalConstrains = (maxLenght: number) => {
+const optionalDataConstrains = (maxLenght: number) => {
   return {
     headerError,
     validate: validate.bind(maxLenght),
     validateError,
   };
 };
+
+const optionalColumnConstrains = (maxLenght: number) => {
+  return {
+    optional: true,
+    validate: validate.bind(maxLenght),
+    validateError,
+  };
+};
+
+const unusedConstrains = (maxLenght: number) => {
+  return {
+    optional: true,
+    headerError,
+  };
+};
+
+/* --- Apple School Manager --- */
 
 const asmLocations = {
   headers: [
@@ -90,7 +107,7 @@ const asmStudents = {
     {
       name: 'person_number',
       inputName: 'person_number',
-      ...optionalConstrains(64),
+      ...optionalDataConstrains(64),
     },
     {
       name: 'first_name',
@@ -100,7 +117,7 @@ const asmStudents = {
     {
       name: 'middle_name',
       inputName: 'middle_name',
-      ...optionalConstrains(32),
+      ...optionalDataConstrains(32),
     },
     {
       name: 'last_name',
@@ -110,17 +127,17 @@ const asmStudents = {
     {
       name: 'grade_level',
       inputName: 'grade_level',
-      ...optionalConstrains(64),
+      ...optionalDataConstrains(64),
     },
     {
       name: 'email_address',
       inputName: 'email_address',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'sis_username',
       inputName: 'sis_username',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'password_policy',
@@ -158,7 +175,7 @@ const asmStaff = {
     {
       name: 'person_number',
       inputName: 'person_number',
-      ...optionalConstrains(64),
+      ...optionalDataConstrains(64),
     },
     {
       name: 'first_name',
@@ -168,7 +185,7 @@ const asmStaff = {
     {
       name: 'middle_name',
       inputName: 'middle_name',
-      ...optionalConstrains(32),
+      ...optionalDataConstrains(32),
     },
     {
       name: 'last_name',
@@ -178,12 +195,12 @@ const asmStaff = {
     {
       name: 'email_address',
       inputName: 'email_address',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'sis_username',
       inputName: 'sis_username',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'location_id',
@@ -203,12 +220,12 @@ const asmCourses = {
     {
       name: 'course_number',
       inputName: 'course_number',
-      ...optionalConstrains(64),
+      ...optionalDataConstrains(64),
     },
     {
       name: 'course_name',
       inputName: 'course_name',
-      ...optionalConstrains(128),
+      ...optionalDataConstrains(128),
     },
     {
       name: 'location_id',
@@ -228,7 +245,7 @@ const asmClasses = {
     {
       name: 'class_number',
       inputName: 'class_number',
-      ...optionalConstrains(64),
+      ...optionalDataConstrains(64),
     },
     {
       name: 'course_id',
@@ -238,17 +255,17 @@ const asmClasses = {
     {
       name: 'instructor_id',
       inputName: 'instructor_id',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'instructor_id_2',
       inputName: 'instructor_id_2',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'instructor_id_3',
       inputName: 'instructor_id_2',
-      ...optionalConstrains(256),
+      ...optionalDataConstrains(256),
     },
     {
       name: 'location_id',
@@ -278,6 +295,193 @@ const asmRosters = {
   ],
 };
 
+/* --- MS School Data Sync --- */
+
+const msSchool = {
+  headers: [
+    {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      ...pkConstrains,
+    },
+    {
+      name: 'Name',
+      inputName: 'Name',
+      ...requiredConstrains(256),
+    },
+  ],
+};
+
+const msStudent = {
+  headers: [
+    {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      ...pkConstrains,
+    },
+    {
+      name: 'School SIS ID',
+      inputName: 'School SIS ID',
+      ...fkConstrains,
+    },
+    {
+      name: 'Username',
+      inputName: 'Username',
+      ...optionalColumnConstrains(256),
+    },
+    {
+      name: 'First Name',
+      inputName: 'First Name',
+      ...requiredConstrains(32),
+    },
+    {
+      name: 'Last Name',
+      inputName: 'Last Name',
+      ...requiredConstrains(64),
+    },
+    {
+      name: 'Middle Name',
+      inputName: 'Middle Name',
+      ...optionalColumnConstrains(32),
+    },
+    {
+      name: 'Secondary Email',
+      inputName: 'Secondary Email',
+      ...optionalColumnConstrains(256),
+    },
+    {
+      name: 'Student Number',
+      inputName: 'Student Number',
+      ...optionalColumnConstrains(64),
+    },
+    {
+      name: 'Grade',
+      inputName: 'Grade',
+      ...optionalColumnConstrains(64),
+    },
+  ],
+};
+
+const msTeacher = {
+  headers: [
+    {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      ...pkConstrains,
+    },
+    {
+      name: 'School SIS ID',
+      inputName: 'School SIS ID',
+      ...fkConstrains,
+    },
+    {
+      name: 'Username',
+      inputName: 'Username',
+      ...optionalColumnConstrains(256),
+    },
+    {
+      name: 'First Name',
+      inputName: 'First Name',
+      ...requiredConstrains(32),
+    },
+    {
+      name: 'Last Name',
+      inputName: 'Last Name',
+      ...requiredConstrains(64),
+    },
+    {
+      name: 'Middle Name',
+      inputName: 'Middle Name',
+      ...optionalColumnConstrains(32),
+    },
+    {
+      name: 'Secondary Email',
+      inputName: 'Secondary Email',
+      ...optionalColumnConstrains(256),
+    },
+    {
+      name: 'Teacher Number',
+      inputName: 'Teacher Number',
+      ...optionalColumnConstrains(64),
+    },
+    {
+      name: 'Grade',
+      inputName: 'Grade',
+      ...optionalColumnConstrains(64),
+    },
+  ],
+};
+
+const msSection = {
+  headers: [
+    {
+      name: 'School SIS ID',
+      inputName: 'School SIS ID',
+      ...fkConstrains,
+    },
+    {
+      name: 'Course SIS ID',
+      inputName: 'Course SIS ID',
+      ...fkConstrains,
+    },
+    {
+      name: 'Course Name',
+      inputName: 'Course Name',
+      ...optionalColumnConstrains(128),
+    },
+    {
+      name: 'Course Number',
+      inputName: 'Course Number',
+      ...optionalColumnConstrains(64),
+    },
+  ],
+};
+
+const msStudentEnrollment = {
+  headers: [
+    // {
+    //   name: 'roster_id',
+    //   inputName: 'roster_id',
+    //   ...pkConstrains,
+    // },
+    {
+      name: 'Section SIS ID',
+      inputName: 'Section SIS ID',
+      ...fkConstrains,
+    },
+    {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      ...fkConstrains,
+    },
+  ],
+};
+
+const msTeacherRoster = {
+  headers: [
+    {
+      name: 'Section SIS ID',
+      inputName: 'Section SIS ID',
+      required: true,
+      requiredError,
+      headerError,
+      validate: validate.bind(256),
+      validateError,
+    },
+    {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      required: true,
+      requiredError,
+      headerError,
+      validate: validate.bind(256),
+      validateError,
+    },
+  ],
+};
+
+/* --- Common --- */
+
 export default function getConfig(fileName: string) {
   switch (fileName.toLowerCase()) {
     case 'locations.csv':
@@ -292,6 +496,18 @@ export default function getConfig(fileName: string) {
       return asmClasses;
     case 'rosters.csv':
       return asmRosters;
+    case 'school.csv':
+      return msSchool;
+    case 'student.csv':
+      return msStudent;
+    case 'teacher.csv':
+      return msTeacher;
+    case 'section.csv':
+      return msSection;
+    case 'studentenrollment.csv':
+      return msStudentEnrollment;
+    case 'teacherroster.csv':
+      return msTeacherRoster;
     default:
       return 0;
   }

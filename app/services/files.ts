@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import string from 'string-sanitizer';
 import { RcFile } from 'antd/lib/upload/interface';
+import { AsmFile, AsmClass, FilesData, FileNamesASM, FileNamesMS } from 'files';
 // import parse from 'csv-parse/lib/sync';
 // import { AsmFile } from 'files';
 import CSVFileValidator from 'csv-file-validator';
@@ -77,14 +78,33 @@ export function getErrorDesc(error: string) {
   }
 }
 
-function insertData(file: RcFile) {
-  // const csv = fs.readFileSync(file.path);
-  // const records: AsmFile[] = parse(csv, {
-  //   columns: true,
-  //   skip_empty_lines: true,
-  // });
-  // console.log(records);
-  // records.forEach((arguments) => statement)
+function getData(data: FilesData, fileName: FileNamesASM | FileNamesMS) {
+  const index = data.findIndex((value, i) => {
+    return Object.prototype.hasOwnProperty.call(value, fileName);
+  });
+  const fileData = [...data[index][fileName]!.data];
+  fileData.shift();
+  return fileData;
+}
+export function importToDb(data: FilesData, filesStandard: 'APPLE' | 'MS') {
+  if (filesStandard === 'MS') {
+    // const fileData = convertData(fileData);
+  } else {
+    // import to sqlite
+    console.log(data);
+    db('locations')
+      .truncate()
+      .then(() => {
+        return db.insert(getData(data, 'locations'));
+      })
+      .then(() => {
+        return db('students').truncate();
+      })
+      .then(() => {
+        return db.insert(getData(data, 'students'));
+      })
+      .catch((err) => console.error(err));
+  }
 }
 
 export function validateFile(file: RcFile) {
@@ -93,7 +113,7 @@ export function validateFile(file: RcFile) {
   const validationErrors = [];
 
   // validate file name
-  if (allowedFileNames.indexOf(path.basename(file.name.toLowerCase())) === -1) {
+  if (allowedFileNames.indexOf(path.basename(file.name)) === -1) {
     validationErrors.push('FILENAME');
   }
 
@@ -110,12 +130,20 @@ export function validateFile(file: RcFile) {
     validationErrors.push('FILETYPE');
   }
 
-  insertData(file);
-
   if (validationErrors.length > 0) {
     return validationErrors;
   }
   return true;
+}
+
+export async function validateFileData(file: RcFile) {
+  try {
+    const result = await CSVFileValidator(file, getConfig(file.name));
+    return { result, file };
+  } catch (error) {
+    console.error(error);
+    return Promise.reject(new Error('Invalid data'));
+  }
 }
 
 // export function validateFileList(fileList: RcFile[]) {
@@ -142,16 +170,6 @@ export function validateFile(file: RcFile) {
 //   return { wrongFiles, validFiles };
 // }
 
-export async function validateFileData(file: RcFile) {
-  try {
-    const result = await CSVFileValidator(file, getConfig(file.name));
-    return { result, file };
-  } catch (error) {
-    console.error(error);
-    return Promise.reject(new Error('Invalid data'));
-  }
-}
-
 // export async function validateFileListData(
 //   fileList: RcFile[],
 //   wrongOnly: boolean
@@ -173,3 +191,43 @@ export async function validateFileData(file: RcFile) {
 
 //   return result;
 // }
+
+/** assumes array elements are primitive types
+ * check whether 2 arrays are equal sets.
+ * @param  {} a1 is an array
+ * @param  {} a2 is an array
+ */
+export function areArraysEqualSets(a1: string[], a2: string[]) {
+  const superSet = {};
+  // eslint-disable-next-line no-restricted-syntax
+  for (const i of a1) {
+    const e = i + typeof i;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    superSet[e] = 1;
+  }
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const i of a2) {
+    const e = i + typeof i;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (!superSet[e]) {
+      return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    superSet[e] = 2;
+  }
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const e in superSet) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (superSet[e] === 1) {
+      return false;
+    }
+  }
+
+  return true;
+}
