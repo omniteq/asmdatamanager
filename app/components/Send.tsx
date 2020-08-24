@@ -29,6 +29,7 @@ import {
   getOrganizationMetadata,
   preparePackage,
   uploadToSftp,
+  archiveSendFiles,
 } from '../services/files';
 import { TEMP_FOLDER_PATH } from '../services/const';
 import ValidationError from './ValidationError';
@@ -67,7 +68,10 @@ export default function Send() {
             password: form.password,
           });
         })
-        .then(() => setSendInProgress(false))
+        .then(() => {
+          setSendInProgress(false);
+          return archiveSendFiles(organization.folderName);
+        })
         .catch((err: any) => {
           const errMsg = (
             <>

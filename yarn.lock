@@ -5066,7 +5066,7 @@ csstype@^2.2.0:
 
 "csv-file-validator@https://github.com/platinumitpl/csv-file-validator.git":
   version "1.9.0"
-  resolved "https://github.com/platinumitpl/csv-file-validator.git#fd913ecde502b9216235b6814cf1f26b8a097fd7"
+  resolved "https://github.com/platinumitpl/csv-file-validator.git#9af3ccda2e7566def5f176a7fff55044132f6451"
   dependencies:
     famulus "^2.2.0"
     lodash "^4.17.19"
@@ -6862,7 +6862,7 @@ fs-extra@^8.1.0:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-extra@^9.0.0:
+fs-extra@^9.0.0, fs-extra@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.0.1.tgz#910da0062437ba4c39fedd863f1675ccfefcb9fc"
   integrity sha512-h2iAoN838FqAFJY2/qVpzFXy+EBxfVE220PalAqQLDVsFOHLJrZvut5puAbCdNv6WJk+B8ihI+k0c7JK5erwqQ==
@@ -14356,6 +14356,11 @@ unique-filename@^1.1.1:
   integrity sha512-Vmp0jIp2ln35UTXuryvjzkjGdRyf9b2lTXuSYUiPmzRcl3FDtYqAwOnTJkAngD9SWhnoJzDbTKwaOrZ+STtxNQ==
   dependencies:
     unique-slug "^2.0.0"
+
+unique-objects@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/unique-objects/-/unique-objects-1.0.5.tgz#adf819d97b0bc7ff8f2f2c007adf0b3372055d66"
+  integrity sha512-LzSSM2fsUBQbgD6qspBnKHe3+PjhLy22XMzJtpk4TPZJkwUXU1rQS3cyLnvDU6nXDe2pA8dL2WjT5yG7de1n6Q==
 
 unique-slug@^2.0.0:
   version "2.0.2"

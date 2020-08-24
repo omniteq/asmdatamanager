@@ -5,6 +5,8 @@ import { RcFile } from 'antd/lib/upload/interface';
 import streamToBlob from 'stream-to-blob';
 import { archiveFolder } from 'zip-lib';
 import Sftp, { ConnectOptions } from 'ssh2-sftp-client';
+import uniqueObjects from 'unique-objects';
+import fsExtra from 'fs-extra';
 import {
   FilesData,
   FileNamesASM,
@@ -24,6 +26,7 @@ import {
   MsTeacherRoster,
   MsStudentEnrollement,
   HistoryFolder,
+  AsmFile,
 } from 'files';
 // import parse from 'csv-parse/lib/sync';
 // import { AsmFile } from 'files';
@@ -118,7 +121,7 @@ export function getHistory(organization: Organization) {
     compareTimestamp
   );
 
-  return fileredHistory;
+  return sortedHistory;
 }
 
 export function addOrganization(name: string) {
@@ -175,7 +178,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   });
 
   // build locations
-  data[indexShool].School!.data!.forEach((x) => {
+  data[indexShool].School!.data!.forEach((x, i) => {
     const row = x as MsSchool;
     template[0].locations?.data.push({
       location_id: row['SIS ID'],
@@ -215,15 +218,72 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   });
 
   // build courses
-  data[indexSection].Section!.data!.forEach((x) => {
-    const row = x as MsSection;
-    template[3].courses?.data.push({
-      course_id: row['Course SIS ID'],
-      course_number: row['Section Number'],
-      course_name: row['Section Name'],
-      location_id: row['School SIS ID'],
+  const sectionDataWithCourseId = data[indexSection].Section!.data.filter(
+    (item) => {
+      return Object.prototype.hasOwnProperty.call(item, 'Course SIS ID');
+    }
+  );
+  const uniqueCourses = uniqueObjects(sectionDataWithCourseId, [
+    'Course SIS ID',
+  ]);
+  if (uniqueCourses.length > 0) {
+    uniqueCourses.forEach((x, i) => {
+      const row = x as MsSection;
+      template[3].courses?.data.push({
+        course_id:
+          (row['Course SIS ID'] !== undefined &&
+            row['Course SIS ID']!.length > 0) ||
+          i === 0
+            ? row['Course SIS ID']
+            : (1000 + i).toString(),
+        course_number:
+          (row['Course Number'] !== undefined &&
+            row['Course Number']!.length > 0) ||
+          i === 0
+            ? row['Course Number']
+            : (1000 + i).toString(),
+        course_name:
+          (row['Course Name'] !== undefined &&
+            row['Course Name']!.length > 0) ||
+          i === 0
+            ? row['Course Name']
+            : 'Klasy',
+        location_id: row['School SIS ID'],
+      });
     });
-  });
+  }
+
+  const sectionsWithoutCourseSisId = data[indexSection].Section!.data.filter(
+    (item, i) => {
+      return (
+        (!Object.prototype.hasOwnProperty.call(item, 'Course SIS ID') ||
+          (item as MsSection)['Course SIS ID'].length < 1) &&
+        i > 0
+      );
+    }
+  );
+  if (sectionsWithoutCourseSisId) {
+    // first object will be shifted before import to db or export to file
+    if (template[3].courses!.data.length < 1) {
+      template[3].courses?.data.push({
+        course_id: '',
+        course_number: '',
+        course_name: '',
+        location_id: '',
+      });
+    }
+    data[indexSection].Section!.data.forEach((x, i) => {
+      const row = x as MsSection;
+      if (i === 1) {
+        template[3].courses?.data.push({
+          course_id: '9999',
+          course_number: '9999',
+          course_name: 'Klasy',
+          location_id: row['School SIS ID'],
+        });
+      }
+    });
+  }
 
   const getInstructorSisId = (
     sectionSisId: string,
@@ -241,7 +301,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   };
 
   // build classes
-  data[indexSection].Section!.data!.forEach((x) => {
+  data[indexSection].Section!.data!.forEach((x, i) => {
     const row = x as MsSection;
 
     if (Object.entries(row).length === 0) {
@@ -250,7 +310,12 @@ export function convertData(data: FilesDataMS): FilesDataASM {
       template[4].classes?.data.push({
         class_id: row['SIS ID'],
         class_number: row['Section Number'],
-        course_id: row['Course SIS ID'],
+        course_id:
+          (row['Course SIS ID'] !== undefined &&
+            row['Course SIS ID']!.length > 0) ||
+          i === 0
+            ? row['Course SIS ID']
+            : '9999',
         instructor_id: getInstructorSisId(row['SIS ID'], 0),
         instructor_id_2: getInstructorSisId(row['SIS ID'], 1),
         instructor_id_3: getInstructorSisId(row['SIS ID'], 2),
@@ -543,15 +608,15 @@ export function getFilesFromDir(relativePath: string) {
     .catch((err) => console.error(err));
 }
 
-export function generateFiles(
-  location: string,
-  data: FilesDataASM,
-  fromSql?: boolean
-) {
+export function generateFiles(location: string, data: FilesDataASM) {
   const csvToDisk = data.map((file) => {
     const key = Object.keys(file)[0] as FileNamesASM;
-    const singleFileData = fromSql ? file[key]! : file[key]!.data;
-    if (!fromSql) singleFileData.shift();
+    const singleFileData =
+      file[key]!.data !== undefined ? file[key]!.data : file[key];
+    // if (Object.keys((singleFileData as AsmFile[])[0]).length === 0)
+    //   (singleFileData as AsmFile[]).shift();
+    if ((singleFileData as AsmFile[]).length > 1)
+      (singleFileData as AsmFile[]).shift();
     const csv = new ObjectsToCsv(singleFileData);
     return csv.toDisk(path.join(location, `${key}.csv`));
   });
@@ -644,7 +709,7 @@ export function preparePackage(data: FilesDataASM) {
     fs.mkdirSync(pathFilesTemp);
   }
 
-  return generateFiles(pathFilesTemp, data, true)
+  return generateFiles(pathFilesTemp, data)
     .then(() => {
       archiveFolder(pathFilesTemp, path.join(TEMP_FOLDER_PATH, 'archiwum.zip'))
         .then(
@@ -675,4 +740,10 @@ export function uploadToSftp(zipFilePath: string, config: ConnectOptions) {
   // .catch((err) => {
   //   console.error(err.message);
   // });
+}
+
+export function archiveSendFiles(organizationFolder: string) {
+  const date = new Date();
+  const folderName = `${date.getDay}-${date.getMonth}-${date.getFullYear}_${date.getHours}-${date.getMinutes}`;
+  fsExtra.moveSync(path.join(TEMP_FOLDER_PATH, 'pliki'), folderName);
 }

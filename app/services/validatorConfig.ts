@@ -432,7 +432,7 @@ const msSection = {
     {
       name: 'Course SIS ID',
       inputName: 'Course SIS ID',
-      ...fkConstrains,
+      ...optionalColumnConstrains(256),
     },
     {
       name: 'Course Name',

@@ -299,8 +299,8 @@ export default function FileSelect() {
   };
 
   const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
-    // TODO: walidacja relacji fk pk po ostatnim pliku kiedy jest komplet przez js lub sql
-    // TODO: blokada mieszania typów ms apple
+    // TODO: wybór polityki haseł
+    // TODO: zdefiniowanie domyślnego kursu typu "Klasy"
     const validFile = validateFile(file);
     let reject = false;
 
@@ -413,8 +413,15 @@ export default function FileSelect() {
       .showOpenDialog({
         properties: ['openDirectory'],
       })
+      // eslint-disable-next-line consistent-return
       .then((selection) => {
-        return generateFiles(selection.filePaths[0], convertedData);
+        // eslint-disable-next-line promise/always-return
+        if (!selection.canceled) {
+          return generateFiles(selection.filePaths[0], convertedData);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
       });
   };
 
