@@ -1,4 +1,6 @@
 {
   "HOME": "/",
-  "WYBORPLIKOW": "/wybor-plikow"
+  "WYBORPLIKOW": "/wybor-plikow",
+  "PODGLAD": "/podglad",
+  "DANESFTP": "/dane-sftp"
 }

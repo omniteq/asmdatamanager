@@ -1,5 +1,7 @@
 import path from 'path';
 
+const { remote } = require('electron');
+
 const allowedFileNamesASM = [
   'students.csv',
   'staff.csv',
@@ -25,10 +27,19 @@ const allowedFileNamesMSLowerNoExt = allowedFileNamesMS.map(
 
 const allowedFileNames = [...allowedFileNamesASM, ...allowedFileNamesMS];
 
+const MAIN_FOLDER_PATH = path.join(
+  remote.app.getPath('documents'),
+  'ASM Data Manager'
+);
+
+const TEMP_FOLDER_PATH = path.join(MAIN_FOLDER_PATH, 'Wsylka w trakcie');
+
 export {
   allowedFileNames,
   allowedFileNamesASM,
   allowedFileNamesMS,
   allowedFileNamesASMNoExt,
   allowedFileNamesMSLowerNoExt,
+  MAIN_FOLDER_PATH,
+  TEMP_FOLDER_PATH,
 };

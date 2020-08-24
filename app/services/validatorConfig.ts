@@ -415,9 +415,19 @@ const msTeacher = {
 const msSection = {
   headers: [
     {
+      name: 'SIS ID',
+      inputName: 'SIS ID',
+      ...pkConstrains,
+    },
+    {
       name: 'School SIS ID',
       inputName: 'School SIS ID',
       ...fkConstrains,
+    },
+    {
+      name: 'Section Name',
+      inputName: 'Section Name',
+      ...requiredConstrains,
     },
     {
       name: 'Course SIS ID',

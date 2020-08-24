@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import path from 'path';
 import { Link, useHistory } from 'react-router-dom';
 import {
@@ -13,6 +13,7 @@ import {
   Button,
   Modal,
   notification,
+  Tooltip,
 } from 'antd';
 import {
   InboxOutlined,
@@ -22,13 +23,23 @@ import {
 import { UploadChangeParam } from 'antd/lib/upload';
 import { UploadFile, RcFile, UploadProps } from 'antd/lib/upload/interface';
 import { LabeledValue } from 'antd/lib/select';
-import { FilesData } from 'files';
+import { FilesData, HistoryFolder, FilesDataASM, FilesDataMS } from 'files';
+import { remote } from 'electron';
 import Progress from './Progress';
 import {
   validateFile,
   validateFileData,
   areArraysEqualSets,
   importToDb,
+  getHistory,
+  getFileNamesFromDir,
+  validateFileList,
+  getFilesFromDir,
+  validateFileListData,
+  clearDbHistorical,
+  clearDbNew,
+  generateFiles,
+  convertData,
 } from '../services/files';
 import ValidationError, {
   FileWithDataValidation,
@@ -38,10 +49,13 @@ import {
   allowedFileNamesASMNoExt,
   allowedFileNamesMSLowerNoExt,
 } from '../services/const';
+import db from '../services/db';
+
+const { dialog } = remote;
 
 const { Option } = Select;
 
-const { Title, Text, Link: LinkAnt } = Typography;
+const { Title, Text, Link: LinkAnt, Paragraph } = Typography;
 const { Dragger } = Upload;
 
 type NewFiles = UploadFile<any> & { path: string };
@@ -49,7 +63,9 @@ type NewFiles = UploadFile<any> & { path: string };
 export default function FileSelect() {
   const history = useHistory();
   const [hidden, setHidden] = useState(true);
-  const organization = JSON.parse(localStorage!.getItem('organization')!);
+  const [organization, setOrganization] = useState(
+    JSON.parse(localStorage!.getItem('organization')!)
+  );
   const [newFilesOk, setNewFilesOk] = useState<boolean>(
     JSON.parse(localStorage!.getItem('newFilesOk')!)
   );
@@ -68,18 +84,32 @@ export default function FileSelect() {
       : []
   );
 
-  const [oldFiles, setOldFiles] = useState<
-    string | number | LabeledValue | null
-  >(localStorage.getItem('oldFiles'));
+  const [oldFiles, setOldFiles] = useState<LabeledValue>(
+    JSON.parse(localStorage!.getItem('oldFiles')!)
+  );
 
+  const [oldFilesData, setOldFilesData] = useState<FilesDataASM | undefined>(
+    localStorage.getItem('oldFilesData') !== null
+      ? JSON.parse(localStorage!.getItem('oldFilesData')!)
+      : []
+  );
+
+  const [historyList, setHistoryList] = useState<HistoryFolder[]>(
+    getHistory(organization) as HistoryFolder[]
+  );
   let wrongFiles: FileWithError[] = [];
   let wrongFilesData: FileWithDataValidation[] = [];
 
   const displayErros = (
-    wrongFilesDis: FileWithError[],
-    wrongFilesDataDis: FileWithDataValidation[]
+    wrongFilesDis?: FileWithError[],
+    wrongFilesDataDis?: FileWithDataValidation[],
+    mscError?: any
   ) => {
-    if (wrongFilesDis.length > 0 || wrongFilesDataDis.length > 0) {
+    if (
+      (wrongFilesDis && wrongFilesDis.length > 0) ||
+      (wrongFilesDataDis && wrongFilesDataDis.length > 0) ||
+      mscError
+    ) {
       Modal.error({
         width: '700px',
         title: 'Niepoprawne pliki',
@@ -87,21 +117,177 @@ export default function FileSelect() {
           <ValidationError
             wrongFiles={wrongFilesDis as FileWithError[]}
             wrongData={wrongFilesDataDis as FileWithDataValidation[]}
+            mscError={mscError}
           />
         ),
       });
     }
   };
 
+  const importData = (
+    data: FilesData,
+    standard: 'APPLE' | 'MS' | undefined,
+    historical?: true
+  ) => {
+    if (standard === 'MS' || standard === 'APPLE') {
+      return importToDb(data, standard).catch((err) => {
+        console.error(err);
+        let errMsg = err.message;
+        if (err.message.includes('FOREIGN KEY') === true) {
+          errMsg = (
+            <>
+              <Paragraph>
+                <Alert
+                  message="Klucze obce czyli wartości w kolumnach typu _id lub SIS ID
+                  muszą istnieć w powiązanych plikach."
+                  type="error"
+                />
+              </Paragraph>
+              <Paragraph
+                ellipsis={{ rows: 2, expandable: true, symbol: 'więcej' }}
+              >
+                {err.message}
+              </Paragraph>
+            </>
+          );
+        }
+        if (historical) {
+          errMsg = (
+            <>
+              <Alert
+                showIcon
+                type="warning"
+                message="Pliki wybranej wysyłki historycznej są niepoprawne. Możesz kontynuować
+      wysyłkę, ale nie mogą one zostać użyte do porównania."
+              />
+              <div style={{ marginTop: '18px' }}>
+                <Paragraph
+                  ellipsis={{ rows: 2, expandable: true, symbol: 'więcej' }}
+                >
+                  {errMsg}
+                </Paragraph>
+              </div>
+            </>
+          );
+        }
+        displayErros(undefined, undefined, errMsg);
+        throw err;
+      });
+    }
+    return Promise.reject(
+      new Error(
+        'Wrong files format. All files should be either MS SDS or Apple ASM standard'
+      )
+    );
+  };
+
+  useEffect(() => {
+    setHistoryList(getHistory(organization) as HistoryFolder[]);
+  }, [organization]);
+
+  useEffect(() => {
+    if (historyList.length > 0 && oldFiles === null) {
+      const value = {
+        label: historyList[0].dateString,
+        value: historyList[0].folderName,
+      };
+      setOldFiles(value);
+      localStorage.setItem('oldFiles', JSON.stringify(value));
+    }
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (oldFiles) {
+      const relativePath = path.join(
+        organization.folderName,
+        oldFiles.value as string
+      );
+      const dir = getFileNamesFromDir(relativePath);
+      if (dir.filesStandard !== 'APPLE') {
+        const validationResult = validateFileList(dir.names);
+        displayErros(
+          validationResult.wrongFiles as FileWithError[],
+          undefined,
+          <Alert
+            showIcon
+            type="warning"
+            message="Pliki wybranej wysyłki historycznej są niepoprawne. Możesz kontynuować
+          wysyłkę, ale nie mogą one zostać użyte do porównania."
+          />
+        );
+        setOldFilesData(undefined);
+        localStorage.removeItem('oldFilesData');
+      } else {
+        clearDbHistorical()
+          // .then(() => {
+          //   return db('locations')
+          //     .select()
+          //     .then((result) => {
+          //       console.log(result);
+          //       return false;
+          //     })
+          //     .catch((err: any) => console.error(err));
+          // })
+          .then(() => getFilesFromDir(relativePath))
+          .then((result) => validateFileListData(result))
+          .then((data) => {
+            const invalidFiles = data.filter((item) => {
+              return item.result.inValidMessages.length > 0;
+            });
+            if (invalidFiles.length > 0)
+              displayErros(
+                undefined,
+                invalidFiles,
+                <Alert
+                  showIcon
+                  type="warning"
+                  message="Pliki wybranej wysyłki historycznej są niepoprawne. Możesz kontynuować
+            wysyłkę, ale nie mogą one zostać użyte do porównania."
+                />
+              );
+            if (invalidFiles.length < 1) {
+              const oldData = data.map((item) => {
+                return {
+                  [path.parse(item.file.name).name]: item.result,
+                };
+              });
+              const oldDataWithHistoricalFlag = oldData.map((item) => {
+                const key = Object.keys(item)[0];
+                item[key].data = item[key].data.map((x: any) => {
+                  x.historical = 1;
+                  return x;
+                });
+                return item;
+              });
+              setOldFilesData(oldDataWithHistoricalFlag);
+              localStorage.setItem(
+                'oldFilesData',
+                JSON.stringify(oldDataWithHistoricalFlag)
+              );
+              return oldDataWithHistoricalFlag;
+            }
+            throw new Error('Incorrect historical files');
+          })
+          .then((oldDataWithHistoricalFlag) => {
+            if (!isCancelled)
+              return importData(oldDataWithHistoricalFlag, 'APPLE', true);
+            return [0];
+          })
+          .catch((err) => console.error(err));
+      }
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [oldFiles]);
+
   const checkIfOk = () => {
     const files = newFilesData.map((data) => Object.keys(data)[0]);
     const filesStandard = areArraysEqualSets(files, allowedFileNamesASMNoExt)
       ? 'APPLE'
       : areArraysEqualSets(files, allowedFileNamesMSLowerNoExt) && 'MS';
-    // TODO: convert if needed, clear db, import
     if (filesStandard === 'APPLE' || filesStandard === 'MS') {
-      console.log(newFilesData);
-      console.log('OK');
       setNewFilesOk(true);
       localStorage.setItem('newFilesOk', JSON.stringify(true));
       setNewFilesStandard(filesStandard);
@@ -112,17 +298,9 @@ export default function FileSelect() {
     }
   };
 
-  const importData = () => {
-    if (newFilesStandard === 'MS' || newFilesStandard === 'APPLE') {
-      importToDb(newFilesData, newFilesStandard);
-    }
-  };
-
   const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
-    // TODO: przechowywać zaimportowane dane w stanie
     // TODO: walidacja relacji fk pk po ostatnim pliku kiedy jest komplet przez js lub sql
     // TODO: blokada mieszania typów ms apple
-    // TODO: import danych do bazy
     const validFile = validateFile(file);
     let reject = false;
 
@@ -169,9 +347,10 @@ export default function FileSelect() {
 
       if (status === 'done') {
         notification.success({
-          placement: 'bottomRight',
+          placement: 'topRight',
           message: info.file.name,
           style: { width: '100%' },
+          duration: 1.5,
         });
       } else if (status === 'error') {
         message.error(`${info.file.name} plik nie może być załadowany.`);
@@ -183,7 +362,6 @@ export default function FileSelect() {
       setNewFiles(fileListWithPaths.slice(-6));
       localStorage.setItem('newFilesData', JSON.stringify(newFilesData));
 
-      // TODO: import to database if all six files loaded
       if (info.fileList[info.fileList.length - 1].uid === info.file.uid) {
         if (newFilesData.length === 6) {
           checkIfOk();
@@ -208,18 +386,36 @@ export default function FileSelect() {
     setNewFilesOk(false);
   };
 
-  const onSelectOldFiles = (value: string | number | LabeledValue) => {
-    if (typeof value === 'string') {
-      localStorage.setItem('oldFiles', value);
-    }
+  const onChangeOldFiles = (value: LabeledValue) => {
+    localStorage.setItem('oldFiles', JSON.stringify(value));
+    setOldFiles(value);
   };
 
   const onClickNext = () => {
-    history.push('/podglad');
+    clearDbNew()
+      .then(() => {
+        return importData(newFilesData, newFilesStandard);
+      })
+      .then(() => {
+        history.push('/podglad');
+        return true;
+      })
+      .catch((err: any) => console.error(err));
   };
 
   const onClickBack = () => {
     history.push('/');
+  };
+
+  const onDownloadConvertedFiles = () => {
+    const convertedData = convertData(newFilesData as FilesDataMS);
+    const folder = dialog
+      .showOpenDialog({
+        properties: ['openDirectory'],
+      })
+      .then((selection) => {
+        return generateFiles(selection.filePaths[0], convertedData);
+      });
   };
 
   return (
@@ -265,23 +461,27 @@ export default function FileSelect() {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              {/* {newFiles?.length === 6 ? (
-                <p className="ant-upload-text">
-                  Sześć wymaganych plików zostało załadowanych. Usuń pliki jeśli
-                  chcesz je zmienić.
-                </p>
-              ) : ( */}
               <p className="ant-upload-text">
                 Kliknij lub upuść pliki w tym miejscu pliki{' '}
                 <Text strong>CSV</Text>
               </p>
-              {/* )} */}
             </Dragger>
-            <Button onClick={importData}>Importuj</Button>
             {newFilesOk && (
               <Row style={{ padding: '24px 0px' }}>
                 <Alert
-                  message="Pliki zostały pomyślnie zweryfikowane i skonwertowane do formatu zgodnego z ASM. Pobierz je jeśli chcesz je edytować lub wysłać niezależnie."
+                  message={
+                    <>
+                      Pliki zostały pomyślnie zweryfikowane.{' '}
+                      {newFilesStandard === 'MS' && (
+                        <>
+                          <LinkAnt onClick={onDownloadConvertedFiles}>
+                            Pobierz je
+                          </LinkAnt>{' '}
+                          jeśli chcesz je edytować lub wysłać niezależnie.
+                        </>
+                      )}
+                    </>
+                  }
                   type="success"
                   showIcon
                 />
@@ -295,7 +495,14 @@ export default function FileSelect() {
                 header={
                   <div>
                     <Text strong>Pliki do wysłania (.csv)</Text>
-                    <DownloadOutlined style={{ padding: '0 12px' }} />
+                    {newFilesStandard === 'MS' && (
+                      <Tooltip title="Pobierz przekonwertowane pliki">
+                        <DownloadOutlined
+                          style={{ padding: '0 12px' }}
+                          onClick={onDownloadConvertedFiles}
+                        />
+                      </Tooltip>
+                    )}
                   </div>
                 }
                 dataSource={newFiles}
@@ -318,17 +525,7 @@ export default function FileSelect() {
             )}
           </Col>
         </Row>
-        {/* {newFilesOk && (
-          <Row style={{ padding: '24px 0px' }}>
-            <Alert
-              message="Pliki zostały pomyślnie zweryfikowane i skonwertowane do formatu zgodnego z ASM. Pobierz je jeśli chcesz je edytować lub wysłać niezależnie."
-              type="success"
-              showIcon
-            />
-          </Row>
-        )} */}
-
-        {newFilesOk && (
+        {newFilesOk && historyList.length > 0 && (
           <>
             <Row>
               <Text>
@@ -339,14 +536,29 @@ export default function FileSelect() {
             </Row>
             <Row style={{ padding: '18px 0px' }}>
               <Select
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(oldFiles && { defaultValue: oldFiles })}
+                labelInValue
+                defaultValue={
+                  oldFiles ||
+                  (historyList.length > 0 && {
+                    label: historyList[0].dateString,
+                    value: historyList[0].folderName,
+                  })
+                }
                 size="large"
                 style={{ width: '50%', minWidth: '400px' }}
                 placeholder="Wybierz wysyłkę"
-                onSelect={onSelectOldFiles}
+                onChange={onChangeOldFiles}
               >
-                <Option key="Wysyłka 1">Wysyłka 1</Option>
+                {historyList &&
+                  historyList.map((item) => (
+                    <Option
+                      label={item.dateString}
+                      value={item.folderName}
+                      key={item.folderName}
+                    >
+                      {item.dateString}
+                    </Option>
+                  ))}
               </Select>
             </Row>
           </>
@@ -377,7 +589,7 @@ export default function FileSelect() {
               <Button
                 size="large"
                 type="primary"
-                href="/wybor-plikow"
+                // href="/wybor-plikow"
                 style={{ padding: '0 24px' }}
                 onClick={onClickNext}
                 disabled={!newFilesOk}

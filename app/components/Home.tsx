@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { Typography, Button, Input, Divider, Row, Select, message } from 'antd';
 import { RightOutlined, PlusOutlined } from '@ant-design/icons';
@@ -11,6 +11,7 @@ import initMainFolder, {
   getOrganizations,
   addOrganization,
   Organization,
+  clearDbAll,
 } from '../services/files';
 
 const { Option } = Select;
@@ -31,6 +32,13 @@ export default function Home(): JSX.Element {
   // const currentOrganization = JSON.parse(
   //   localStorage!.getItem('organization')!
   // );
+
+  useEffect(() => {
+    localStorage.removeItem('oldFiles');
+    localStorage.removeItem('oldFilesData');
+    localStorage.removeItem('sftpForm');
+    clearDbAll();
+  }, [organizations]);
 
   initMainFolder();
 
@@ -86,7 +94,7 @@ export default function Home(): JSX.Element {
             defaultValue={
               (currentOrganization && {
                 label: currentOrganization.name,
-                value: currentOrganization.foldername,
+                value: currentOrganization.folderName,
               }) ||
               ''
             }

@@ -19,6 +19,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.27.tgz#a151873af5a5e851b51b3b065c9e63390a9e0eb1"
   integrity sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
 
+"@types/objects-to-csv@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@types/objects-to-csv/-/objects-to-csv-1.3.0.tgz#81972cbfc4b00acf8c923f0983bb5065e95070f5"
+  integrity sha512-XpoV1G8YBbWAwHvQ7kHf6OLor5hhAdd82MV/rBRgznNiRTjDxVjYYU2oC723A9PbpmjdbIPi0pSx5IwfbqLm5A==
+
 "@types/sqlite3@^3.1.6":
   version "3.1.6"
   resolved "https://registry.yarnpkg.com/@types/sqlite3/-/sqlite3-3.1.6.tgz#554ce76f886eb187cfc86e2f0bb67cbac4f568ce"
