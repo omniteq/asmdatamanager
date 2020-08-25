@@ -32,6 +32,7 @@ import {
 // import { AsmFile } from 'files';
 import CSVFileValidator from 'csv-file-validator';
 // import { FileWithError } from '../components/ValidationError';
+import { LabeledValue } from 'antd/lib/select';
 import ObjectsToCsv from 'objects-to-csv';
 import getConfig from './validatorConfig';
 import db from './db';
@@ -181,24 +182,24 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   data[indexShool].School!.data!.forEach((x, i) => {
     const row = x as MsSchool;
     template[0].locations?.data.push({
-      location_id: row['SIS ID'],
-      location_name: row.Name,
+      location_id: row['SIS ID'] ? row['SIS ID'] : '',
+      location_name: row.Name ? row.Name : '',
     });
   });
   // build students
   data[indexStudent].Student!.data!.forEach((x) => {
     const row = x as MsStudent;
     template[1].students?.data.push({
-      person_id: row['SIS ID'],
-      person_number: row['Student Number'],
-      first_name: row['First Name'],
-      middle_name: row['Middle Name'],
-      last_name: row['Last Name'],
-      grade_level: row.Grade,
-      email_address: row['Secondary Email'],
-      sis_username: row.Username,
+      person_id: row['SIS ID'] ? row['SIS ID'] : '',
+      person_number: row['Student Number'] ? row['Student Number'] : '',
+      first_name: row['First Name'] ? row['First Name'] : '',
+      middle_name: row['Middle Name'] ? row['Middle Name'] : '',
+      last_name: row['Last Name'] ? row['Last Name'] : '',
+      grade_level: row.Grade ? row.Grade : '',
+      email_address: row['Secondary Email'] ? row['Secondary Email'] : '',
+      sis_username: row.Username ? row.Username : '',
       password_policy: '',
-      location_id: row['School SIS ID'],
+      location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
     });
   });
 
@@ -206,14 +207,14 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   data[indexTeacher].Teacher!.data!.forEach((x) => {
     const row = x as MsTeacher;
     template[2].staff?.data.push({
-      person_id: row['SIS ID'],
-      person_number: row['Teacher Number'],
-      first_name: row['First Name'],
-      middle_name: row['Middle Name'],
-      last_name: row['Last Name'],
-      email_address: row['Secondary Email'],
-      sis_username: row.Username,
-      location_id: row['School SIS ID'],
+      person_id: row['SIS ID'] ? row['SIS ID'] : '',
+      person_number: row['Teacher Number'] ? row['Teacher Number'] : '',
+      first_name: row['First Name'] ? row['First Name'] : '',
+      middle_name: row['Middle Name'] ? row['Middle Name'] : '',
+      last_name: row['Last Name'] ? row['Last Name'] : '',
+      email_address: row['Secondary Email'] ? row['Secondary Email'] : '',
+      sis_username: row.Username ? row.Username : '',
+      location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
     });
   });
 
@@ -248,7 +249,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
           i === 0
             ? row['Course Name']
             : 'Klasy',
-        location_id: row['School SIS ID'],
+        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
       });
     });
   }
@@ -279,7 +280,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
           course_id: '9999',
           course_number: '9999',
           course_name: 'Klasy',
-          location_id: row['School SIS ID'],
+          location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
         });
       }
     });
@@ -308,8 +309,8 @@ export function convertData(data: FilesDataMS): FilesDataASM {
       template[4].classes?.data.push({} as AsmClass);
     } else {
       template[4].classes?.data.push({
-        class_id: row['SIS ID'],
-        class_number: row['Section Number'],
+        class_id: row['SIS ID'] ? row['SIS ID'] : '',
+        class_number: row['Section Number'] ? row['Section Number'] : '',
         course_id:
           (row['Course SIS ID'] !== undefined &&
             row['Course SIS ID']!.length > 0) ||
@@ -319,7 +320,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
         instructor_id: getInstructorSisId(row['SIS ID'], 0),
         instructor_id_2: getInstructorSisId(row['SIS ID'], 1),
         instructor_id_3: getInstructorSisId(row['SIS ID'], 2),
-        location_id: row['School SIS ID'],
+        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
       });
     }
   });
@@ -329,8 +330,8 @@ export function convertData(data: FilesDataMS): FilesDataASM {
     const row = x as MsStudentEnrollement;
     template[5].rosters?.data.push({
       roster_id: i.toString(),
-      class_id: row['Section SIS ID'],
-      student_id: row['SIS ID'],
+      class_id: row['Section SIS ID'] ? row['Section SIS ID'] : '',
+      student_id: row['SIS ID'] ? row['SIS ID'] : '',
     });
   });
 
@@ -445,12 +446,12 @@ function performImport(data: FilesDataASM) {
     });
 }
 export function importToDb(data: FilesData, filesStandard: 'APPLE' | 'MS') {
-  if (filesStandard === 'MS') {
-    const convertedData = convertData(data as FilesDataMS);
-    return performImport(convertedData).catch((err) => {
-      throw err;
-    });
-  }
+  // if (filesStandard === 'MS') {
+  //   const convertedData = convertData(data as FilesDataMS);
+  //   return performImport(convertedData).catch((err) => {
+  //     throw err;
+  //   });
+  // }
   return performImport(data as FilesDataASM);
 }
 
@@ -608,14 +609,18 @@ export function getFilesFromDir(relativePath: string) {
     .catch((err) => console.error(err));
 }
 
-export function generateFiles(location: string, data: FilesDataASM) {
+export function generateFiles(
+  location: string,
+  data: FilesDataASM,
+  noFirstBlank?: boolean
+) {
   const csvToDisk = data.map((file) => {
     const key = Object.keys(file)[0] as FileNamesASM;
     const singleFileData =
       file[key]!.data !== undefined ? file[key]!.data : file[key];
     // if (Object.keys((singleFileData as AsmFile[])[0]).length === 0)
     //   (singleFileData as AsmFile[]).shift();
-    if ((singleFileData as AsmFile[]).length > 1)
+    if ((singleFileData as AsmFile[]).length > 1 && !noFirstBlank)
       (singleFileData as AsmFile[]).shift();
     const csv = new ObjectsToCsv(singleFileData);
     return csv.toDisk(path.join(location, `${key}.csv`));
@@ -700,6 +705,21 @@ export function getOrganizationMetadata(organizationFolder: string) {
   );
 }
 
+export function setOrganizationMetadata(
+  organizationFolder: string,
+  data: {
+    name?: string;
+    hostname?: string;
+    username?: string;
+  }
+) {
+  const metadata = getOrganizationMetadata(organizationFolder);
+  return fs.writeFileSync(
+    path.join(MAIN_FOLDER_PATH, organizationFolder, 'metadata.json'),
+    JSON.stringify({ ...metadata, ...data })
+  );
+}
+
 export function preparePackage(data: FilesDataASM) {
   const pathFilesTemp = path.join(TEMP_FOLDER_PATH, 'pliki');
   if (!fs.existsSync(TEMP_FOLDER_PATH)) {
@@ -709,7 +729,7 @@ export function preparePackage(data: FilesDataASM) {
     fs.mkdirSync(pathFilesTemp);
   }
 
-  return generateFiles(pathFilesTemp, data)
+  return generateFiles(pathFilesTemp, data, true)
     .then(() => {
       archiveFolder(pathFilesTemp, path.join(TEMP_FOLDER_PATH, 'archiwum.zip'))
         .then(
@@ -744,6 +764,31 @@ export function uploadToSftp(zipFilePath: string, config: ConnectOptions) {
 
 export function archiveSendFiles(organizationFolder: string) {
   const date = new Date();
-  const folderName = `${date.getDay}-${date.getMonth}-${date.getFullYear}_${date.getHours}-${date.getMinutes}`;
-  fsExtra.moveSync(path.join(TEMP_FOLDER_PATH, 'pliki'), folderName);
+  const archiveFolderPath = path.join(
+    MAIN_FOLDER_PATH,
+    organizationFolder,
+    `${date.getDay()}-${date.getMonth()}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
+  );
+  fsExtra.moveSync(path.join(TEMP_FOLDER_PATH, 'pliki'), archiveFolderPath);
+  fs.writeFileSync(
+    path.join(archiveFolderPath, 'metadata.json'),
+    JSON.stringify({ timestamp: Date.now() })
+  );
+  fs.unlinkSync(path.join(TEMP_FOLDER_PATH, 'archiwum.zip'));
+  return archiveFolderPath;
+}
+
+export function addPassPolicy(data: FilesData, passPolicy: LabeledValue) {
+  const index = data.findIndex((element) =>
+    Object.prototype.hasOwnProperty.call(element, 'students')
+  );
+  (data as FilesDataASM)[index].students!.data.forEach((item, i) => {
+    const itemPassPolicy = (item as AsmStudent).password_policy;
+    if (!['4', '6', '8', 4, 6, 8].includes(itemPassPolicy)) {
+      (data[index].students!.data[
+        i
+      ] as AsmStudent).password_policy = passPolicy.value as '4' | '6' | '8';
+    }
+  });
+  return data;
 }

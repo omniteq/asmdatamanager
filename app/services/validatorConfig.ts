@@ -264,7 +264,7 @@ const asmClasses = {
     },
     {
       name: 'instructor_id_3',
-      inputName: 'instructor_id_2',
+      inputName: 'instructor_id_3',
       ...optionalDataConstrains(256),
     },
     {

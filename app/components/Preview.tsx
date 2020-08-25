@@ -71,7 +71,7 @@ export default function Preview() {
   );
   const [view, setView] = useState(localStorage!.getItem('view'));
   const [data, setData] = useState<any>();
-  const [changesView, setChangesView] = useState('changed');
+  const [changesView, setChangesView] = useState('updated');
   const [currentTab, setCurrentTab] = useState('diffStudents');
 
   const oldFilesString = localStorage.getItem('oldFiles');
@@ -96,12 +96,12 @@ export default function Preview() {
     const historicalData: any[] = [];
     getPreviewNewStudents()
       .then((result) => {
-        // console.log('new students', result);
+        console.log('new students', result);
         newData.push(removeHistoricalProperty(result));
         return getPreviewHistoricalStudents();
       })
       .then((result) => {
-        // console.log('hist students', result);
+        console.log('hist students', result);
         historicalData.push(removeHistoricalProperty(result));
         return getPreviewNewClasses();
       })
@@ -153,7 +153,7 @@ export default function Preview() {
     columnsIndex: number,
     type: string
   ) => {
-    // const types = ['changed', 'removed', 'added', 'same'];
+    // const types = ['updated', 'removed', 'added', 'same'];
     // const components = types.map((type) => {
     return (
       <Table
@@ -172,10 +172,10 @@ export default function Preview() {
     return (
       <Radio.Group
         onChange={onChangeChangesView}
-        defaultValue={changesView || 'changed'}
+        defaultValue={changesView || 'updated'}
         style={{ marginBottom: 12 }}
       >
-        <Radio.Button value="changed">
+        <Radio.Button value="updated">
           Do zmiany ({data[currentTab].updated.length})
         </Radio.Button>
         <Radio.Button value="added">
@@ -223,8 +223,8 @@ export default function Preview() {
             {data && (
               <>
                 {viewChangesRadio()}
-                {changesView === 'changed' &&
-                  getTables('diffStudents', 0, 'changed')}
+                {changesView === 'updated' &&
+                  getTables('diffStudents', 0, 'updated')}
                 {changesView === 'added' &&
                   getTables('diffStudents', 0, 'added')}
                 {changesView === 'removed' &&
@@ -237,8 +237,8 @@ export default function Preview() {
             {data && (
               <>
                 {viewChangesRadio()}
-                {changesView === 'changed' &&
-                  getTables('diffStaff', 1, 'changed')}
+                {changesView === 'updated' &&
+                  getTables('diffStaff', 1, 'updated')}
                 {changesView === 'added' && getTables('diffStaff', 1, 'added')}
                 {changesView === 'removed' &&
                   getTables('diffStaff', 1, 'removed')}
@@ -250,8 +250,8 @@ export default function Preview() {
             {data && (
               <>
                 {viewChangesRadio()}
-                {changesView === 'changed' &&
-                  getTables('diffClasses', 2, 'changed')}
+                {changesView === 'updated' &&
+                  getTables('diffClasses', 2, 'updated')}
                 {changesView === 'added' &&
                   getTables('diffClasses', 2, 'added')}
                 {changesView === 'removed' &&

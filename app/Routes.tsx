@@ -6,6 +6,7 @@ import App from './containers/App';
 import HomePage from './containers/HomePage';
 import PreviewPage from './containers/PreviewPage';
 import SendPage from './containers/SendPage';
+import SummaryPage from './containers/SummaryPage';
 
 // Lazily load routes and code split with webpacck
 const LazyFileSelectPage = React.lazy(() =>
@@ -26,6 +27,7 @@ export default function Routes() {
         <Route path={routes.WYBORPLIKOW} component={FileSelectPage} />
         <Route path={routes.PODGLAD} component={PreviewPage} />
         <Route path={routes.DANESFTP} component={SendPage} />
+        <Route path={routes.PODSUMOWANIE} component={SummaryPage} />
       </Switch>
     </App>
   );

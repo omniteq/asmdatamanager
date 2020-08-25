@@ -30,6 +30,7 @@ import {
   preparePackage,
   uploadToSftp,
   archiveSendFiles,
+  setOrganizationMetadata,
 } from '../services/files';
 import { TEMP_FOLDER_PATH } from '../services/const';
 import ValidationError from './ValidationError';
@@ -48,7 +49,11 @@ export default function Send() {
   const [form, setForm] = useState(
     localStorage.getItem('sftpForm') !== null
       ? JSON.parse(localStorage!.getItem('sftpForm')!)
-      : { login: '', password: '', url: '', checkbox: false }
+      : {
+          login: metadata.username,
+          url: metadata.hostname,
+          checkbox: false,
+        }
   );
   const [formOk, setFormOk] = useState(false);
   const [sendInProgress, setSendInProgress] = useState(false);
@@ -70,7 +75,16 @@ export default function Send() {
         })
         .then(() => {
           setSendInProgress(false);
-          return archiveSendFiles(organization.folderName);
+          setOrganizationMetadata(organization.folderName, {
+            hostname: form.url,
+            username: form.login,
+          });
+          const archiveFolderPath = archiveSendFiles(organization.folderName);
+          localStorage.setItem(
+            'archiveFolderPath',
+            JSON.stringify(archiveFolderPath)
+          );
+          return archiveFolderPath;
         })
         .catch((err: any) => {
           const errMsg = (
@@ -90,13 +104,14 @@ export default function Send() {
           setSendInProgress(false);
         });
     }
-    // history.push('/podsumowanie');
+    history.push('/podsumowanie');
   };
 
   useEffect(() => {
     if (
       validator.isEmail(form.login) &&
       validator.isFQDN(form.url) &&
+      form.password &&
       form.password.length > 5 &&
       form.checkbox === true
     ) {

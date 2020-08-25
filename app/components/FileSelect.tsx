@@ -14,6 +14,7 @@ import {
   Modal,
   notification,
   Tooltip,
+  Divider,
 } from 'antd';
 import {
   InboxOutlined,
@@ -23,7 +24,13 @@ import {
 import { UploadChangeParam } from 'antd/lib/upload';
 import { UploadFile, RcFile, UploadProps } from 'antd/lib/upload/interface';
 import { LabeledValue } from 'antd/lib/select';
-import { FilesData, HistoryFolder, FilesDataASM, FilesDataMS } from 'files';
+import {
+  FilesData,
+  HistoryFolder,
+  FilesDataASM,
+  FilesDataMS,
+  AsmStudent,
+} from 'files';
 import { remote } from 'electron';
 import Progress from './Progress';
 import {
@@ -40,6 +47,7 @@ import {
   clearDbNew,
   generateFiles,
   convertData,
+  addPassPolicy,
 } from '../services/files';
 import ValidationError, {
   FileWithDataValidation,
@@ -71,7 +79,7 @@ export default function FileSelect() {
   );
 
   const [newFilesStandard, setNewFilesStandard] = useState<
-    'APPLE' | 'MS' | undefined
+    'APPLE' | 'MS' | null | undefined
   >(JSON.parse(localStorage!.getItem('newFilesStandard')!));
 
   const [newFiles, setNewFiles] = useState<NewFiles[] | undefined>(
@@ -92,6 +100,16 @@ export default function FileSelect() {
     localStorage.getItem('oldFilesData') !== null
       ? JSON.parse(localStorage!.getItem('oldFilesData')!)
       : []
+  );
+
+  const [showMissPassPolicy, setShowMissPassPolicy] = useState(false);
+  const [passPolicy, setPassPolicy] = useState<LabeledValue>(
+    localStorage.getItem('passPolicy') !== null
+      ? JSON.parse(localStorage!.getItem('passPolicy')!)
+      : {
+          label: 'Osiom lub więcej znakowe hasło alfanumeryczne',
+          value: '8',
+        }
   );
 
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
@@ -126,11 +144,18 @@ export default function FileSelect() {
 
   const importData = (
     data: FilesData,
-    standard: 'APPLE' | 'MS' | undefined,
+    standard: 'APPLE' | 'MS' | undefined | null,
     historical?: true
   ) => {
     if (standard === 'MS' || standard === 'APPLE') {
-      return importToDb(data, standard).catch((err) => {
+      let dataToImport = data;
+      if (standard === 'MS') {
+        dataToImport = convertData(data as FilesDataMS);
+      }
+      if (showMissPassPolicy) {
+        dataToImport = addPassPolicy(dataToImport, passPolicy);
+      }
+      return importToDb(dataToImport, standard).catch((err) => {
         console.error(err);
         let errMsg = err.message;
         if (err.message.includes('FOREIGN KEY') === true) {
@@ -182,10 +207,58 @@ export default function FileSelect() {
   };
 
   useEffect(() => {
+    if (newFilesStandard === 'MS') {
+      setShowMissPassPolicy(true);
+    }
+    if (newFilesStandard === 'APPLE') {
+      const index = newFilesData.findIndex((element) =>
+        Object.prototype.hasOwnProperty.call(element, 'students')
+      );
+      if (index !== -1) {
+        const passPolicyArray = (newFilesData as FilesDataASM)[
+          index
+        ].students!.data.map((item) => (item as AsmStudent).password_policy);
+        passPolicyArray.shift();
+        const nrOfStudentsWithPassPolicy = passPolicyArray.filter((item) => {
+          return item && ['4', '6', '8', 4, 6, 8].includes(item);
+        }).length;
+        if (nrOfStudentsWithPassPolicy < passPolicyArray.length) {
+          setShowMissPassPolicy(true);
+        }
+        if (nrOfStudentsWithPassPolicy === passPolicyArray.length) {
+          setShowMissPassPolicy(false);
+        }
+        // console.log(passPolicyArray);
+      } else {
+        setShowMissPassPolicy(false);
+      }
+    }
+  }, [newFilesStandard, newFiles]);
+
+  useEffect(() => {
     setHistoryList(getHistory(organization) as HistoryFolder[]);
   }, [organization]);
 
+  const checkIfOk = () => {
+    const files = newFilesData.map((data) => Object.keys(data)[0]);
+    const filesStandard = areArraysEqualSets(files, allowedFileNamesASMNoExt)
+      ? 'APPLE'
+      : areArraysEqualSets(files, allowedFileNamesMSLowerNoExt) && 'MS';
+    if (filesStandard === 'APPLE' || filesStandard === 'MS') {
+      setNewFilesOk(true);
+      localStorage.setItem('newFilesOk', JSON.stringify(true));
+      setNewFilesStandard(filesStandard);
+      localStorage.setItem('newFilesStandard', JSON.stringify(filesStandard));
+    } else {
+      setNewFilesOk(false);
+      setNewFilesStandard(null);
+      localStorage.setItem('newFilesOk', JSON.stringify(false));
+      localStorage.setItem('newFilesStandard', JSON.stringify(false));
+    }
+  };
+
   useEffect(() => {
+    checkIfOk();
     if (historyList.length > 0 && oldFiles === null) {
       const value = {
         label: historyList[0].dateString,
@@ -282,22 +355,6 @@ export default function FileSelect() {
     };
   }, [oldFiles]);
 
-  const checkIfOk = () => {
-    const files = newFilesData.map((data) => Object.keys(data)[0]);
-    const filesStandard = areArraysEqualSets(files, allowedFileNamesASMNoExt)
-      ? 'APPLE'
-      : areArraysEqualSets(files, allowedFileNamesMSLowerNoExt) && 'MS';
-    if (filesStandard === 'APPLE' || filesStandard === 'MS') {
-      setNewFilesOk(true);
-      localStorage.setItem('newFilesOk', JSON.stringify(true));
-      setNewFilesStandard(filesStandard);
-      localStorage.setItem('newFilesStandard', JSON.stringify(filesStandard));
-    } else {
-      setNewFilesOk(false);
-      localStorage.setItem('newFilesOk', JSON.stringify(false));
-    }
-  };
-
   const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
     // TODO: wybór polityki haseł
     // TODO: zdefiniowanie domyślnego kursu typu "Klasy"
@@ -391,9 +448,18 @@ export default function FileSelect() {
     setOldFiles(value);
   };
 
+  const onChangePassPolicy = (value: LabeledValue) => {
+    localStorage.setItem('passPolicy', JSON.stringify(value));
+    setPassPolicy(value);
+  };
+
   const onClickNext = () => {
     clearDbNew()
       .then(() => {
+        // let data = newFilesData;
+        // if (newFilesStandard === 'MS') {
+        //   data = convertData(newFilesData as FilesDataMS);
+        // }
         return importData(newFilesData, newFilesStandard);
       })
       .then(() => {
@@ -532,13 +598,55 @@ export default function FileSelect() {
             )}
           </Col>
         </Row>
+        {newFilesOk && showMissPassPolicy && (
+          <>
+            <Divider />
+            <Row>
+              <Text>
+                2. W pliku listy uczniów, istnieją rekordy, które nie posiadają
+                zdefiniowanego pola <Text code>password_policy</Text>. Jaką
+                politykę chcesz zastosować?
+              </Text>
+            </Row>
+            <Row style={{ padding: '18px 0px' }}>
+              <Select
+                labelInValue
+                defaultValue={
+                  passPolicy || {
+                    label: 'Osiom lub więcej znakowe hasło alfanumeryczne',
+                    value: '8',
+                  }
+                }
+                size="large"
+                style={{ width: '50%', minWidth: '400px' }}
+                placeholder="Wybierz politykę haseł"
+                onChange={onChangePassPolicy}
+              >
+                <Option
+                  label="Osiom lub więcej znakowe hasło alfanumeryczne"
+                  value="8"
+                  key={8}
+                >
+                  Osiom lub więcej znakowe hasło alfanumeryczne
+                </Option>
+                <Option label="Szejściocyforwy kod" value="6" key={6}>
+                  Szejściocyforwy kod
+                </Option>
+                <Option label="Czterocyforwy kod" value="4" key={4}>
+                  Czterocyforwy kod
+                </Option>
+              </Select>
+            </Row>
+          </>
+        )}
+        <Divider />
         {newFilesOk && historyList.length > 0 && (
           <>
             <Row>
               <Text>
-                2. Wybierz historyczną wysyłkę, z którą chcesz porównać
-                załadowany powyżej zestaw plików. To pozwoli na przegląd różnic
-                przed wysyłką.
+                {showMissPassPolicy ? '3. ' : '2. '}Wybierz historyczną wysyłkę,
+                z którą chcesz porównać załadowany powyżej zestaw plików. To
+                pozwoli na przegląd różnic przed wysyłką.
               </Text>
             </Row>
             <Row style={{ padding: '18px 0px' }}>
