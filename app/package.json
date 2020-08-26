@@ -1,13 +1,13 @@
 {
   "name": "asm-data-manager",
   "productName": "ASM Data Manager",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "This app allows easy conversion of data from Microsoft School Data Sync to Apple School Manager. Apart from that, it validates files, displays friendly preview, uploads the zip to SFTP, and archive files in a structured manner.",
   "main": "./main.prod.js",
   "author": {
     "name": "Jacek Pietsch",
     "email": "info@platinumit.pl",
-    "url": "https://gitlab.com/jp_omniteq/asmdatamanager"
+    "url": "https://github.com/omniteq/asmdatamanager.git"
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",

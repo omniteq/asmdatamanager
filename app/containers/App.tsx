@@ -25,7 +25,7 @@ export default function App(props: Props) {
         </HeaderAnt>
         <Content className="content">{children}</Content>
         <Footer className="footer">
-          <Text type="secondary">Jacek Pietsch ©2020</Text>
+          <Text type="secondary">Omniteq Jacek Pietsch ©2020</Text>
         </Footer>
       </Layout>
     </ConfigProvider>
