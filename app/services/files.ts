@@ -248,7 +248,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
             row['Course Name']!.length > 0) ||
           i === 0
             ? row['Course Name']
-            : 'Klasy',
+            : row['Section Name'],
         location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
       });
     });
@@ -265,24 +265,24 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   );
   if (sectionsWithoutCourseSisId) {
     // first object will be shifted before import to db or export to file
-    if (template[3].courses!.data.length < 1) {
-      template[3].courses?.data.push({
-        course_id: '',
-        course_number: '',
-        course_name: '',
-        location_id: '',
-      });
-    }
+    // if (template[3].courses!.data.length < 1) {
+    //   template[3].courses?.data.push({
+    //     course_id: '',
+    //     course_number: '',
+    //     course_name: '',
+    //     location_id: '',
+    //   });
+    // }
     data[indexSection].Section!.data.forEach((x, i) => {
       const row = x as MsSection;
-      if (i === 1) {
-        template[3].courses?.data.push({
-          course_id: '9999',
-          course_number: '9999',
-          course_name: 'Klasy',
-          location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
-        });
-      }
+      // if (i === 1) {
+      template[3].courses?.data.push({
+        course_id: (2000 + i).toString(),
+        course_number: (2000 + i).toString(),
+        course_name: row['Section Name'],
+        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
+      });
+      // }
     });
   }
 
@@ -316,7 +316,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
             row['Course SIS ID']!.length > 0) ||
           i === 0
             ? row['Course SIS ID']
-            : '9999',
+            : (2000 + i).toString(),
         instructor_id: getInstructorSisId(row['SIS ID'], 0),
         instructor_id_2: getInstructorSisId(row['SIS ID'], 1),
         instructor_id_3: getInstructorSisId(row['SIS ID'], 2),
