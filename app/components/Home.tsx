@@ -21,6 +21,7 @@ const { Title, Link: LinkAnt } = Typography;
 const index = 0;
 
 export default function Home(): JSX.Element {
+  initMainFolder();
   const [organizations, setOrganizations] = useState<Organization[]>(
     getOrganizations()
   );
@@ -39,8 +40,6 @@ export default function Home(): JSX.Element {
     localStorage.removeItem('sftpForm');
     clearDbAll();
   }, [organizations]);
-
-  initMainFolder();
 
   const onSelect = (event: LabeledValue) => {
     const organization = {

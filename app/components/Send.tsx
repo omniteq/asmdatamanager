@@ -50,8 +50,8 @@ export default function Send() {
     localStorage.getItem('sftpForm') !== null
       ? JSON.parse(localStorage!.getItem('sftpForm')!)
       : {
-          login: metadata.username,
-          url: metadata.hostname,
+          login: metadata.username ? metadata.username : '',
+          url: metadata.hostname ? metadata.hostname : '',
           checkbox: false,
         }
   );
