@@ -47,7 +47,55 @@ declare module 'files' {
     instructor_id?: string | null;
     instructor_id_2?: string | null;
     instructor_id_3?: string | null;
+    instructor_id_4?: string | null;
+    instructor_id_5?: string | null;
+    instructor_id_6?: string | null;
+    instructor_id_7?: string | null;
+    instructor_id_8?: string | null;
+    instructor_id_9?: string | null;
+    instructor_id_10?: string | null;
+    instructor_id_11?: string | null;
+    instructor_id_12?: string | null;
+    instructor_id_13?: string | null;
+    instructor_id_14?: string | null;
+    instructor_id_15?: string | null;
+    instructor_id_16?: string | null;
+    instructor_id_17?: string | null;
+    instructor_id_18?: string | null;
+    instructor_id_19?: string | null;
+    instructor_id_20?: string | null;
+    instructor_id_21?: string | null;
+    instructor_id_22?: string | null;
+    instructor_id_23?: string | null;
+    instructor_id_24?: string | null;
+    instructor_id_25?: string | null;
+    instructor_id_26?: string | null;
+    instructor_id_27?: string | null;
+    instructor_id_28?: string | null;
+    instructor_id_29?: string | null;
+    instructor_id_30?: string | null;
+    instructor_id_31?: string | null;
+    instructor_id_32?: string | null;
+    instructor_id_33?: string | null;
+    instructor_id_34?: string | null;
+    instructor_id_35?: string | null;
+    instructor_id_36?: string | null;
+    instructor_id_37?: string | null;
+    instructor_id_38?: string | null;
+    instructor_id_39?: string | null;
+    instructor_id_40?: string | null;
+    instructor_id_41?: string | null;
+    instructor_id_42?: string | null;
+    instructor_id_43?: string | null;
+    instructor_id_44?: string | null;
+    instructor_id_45?: string | null;
+    instructor_id_46?: string | null;
+    instructor_id_47?: string | null;
+    instructor_id_48?: string | null;
+    instructor_id_49?: string | null;
+    instructor_id_50?: string | null;
     location_id: string;
+    [index: string]: string | null | undefined;
   };
   type AsmRoster = {
     roster_id: string;
@@ -163,12 +211,12 @@ declare module 'files' {
     | 'courses'
     | 'locations';
   type FileNamesMS =
-    | 'Student'
-    | 'Teacher'
-    | 'School'
-    | 'Section'
-    | 'StudentEnrollment'
-    | 'TeacherRoster';
+    | 'student'
+    | 'teacher'
+    | 'school'
+    | 'section'
+    | 'studentenrollment'
+    | 'teacherroster';
 
   export type FilesData = {
     [key in FileNamesASM | FileNamesMS]?: {

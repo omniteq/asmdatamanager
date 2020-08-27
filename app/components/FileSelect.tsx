@@ -55,7 +55,7 @@ import ValidationError, {
 } from './ValidationError';
 import {
   allowedFileNamesASMNoExt,
-  allowedFileNamesMSLowerNoExt,
+  allowedFileNamesMSNoExt,
 } from '../services/const';
 import db from '../services/db';
 
@@ -240,10 +240,12 @@ export default function FileSelect() {
   }, [organization]);
 
   const checkIfOk = () => {
-    const files = newFilesData.map((data) => Object.keys(data)[0]);
+    const files = newFilesData.map((data) =>
+      Object.keys(data)[0].toLowerCase()
+    );
     const filesStandard = areArraysEqualSets(files, allowedFileNamesASMNoExt)
       ? 'APPLE'
-      : areArraysEqualSets(files, allowedFileNamesMSLowerNoExt) && 'MS';
+      : areArraysEqualSets(files, allowedFileNamesMSNoExt) && 'MS';
     if (filesStandard === 'APPLE' || filesStandard === 'MS') {
       setNewFilesOk(true);
       localStorage.setItem('newFilesOk', JSON.stringify(true));
@@ -370,7 +372,9 @@ export default function FileSelect() {
         setNewFilesData((data) =>
           [
             ...data,
-            { [path.parse(file.name).name]: validFileData.result },
+            {
+              [path.parse(file.name).name.toLowerCase()]: validFileData.result,
+            },
           ].slice(-6)
         );
       }

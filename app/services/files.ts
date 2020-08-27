@@ -38,7 +38,7 @@ import getConfig from './validatorConfig';
 import db from './db';
 import {
   allowedFileNames,
-  allowedFileNamesMSLowerNoExt,
+  allowedFileNamesMSNoExt,
   allowedFileNamesASM,
   MAIN_FOLDER_PATH,
   TEMP_FOLDER_PATH,
@@ -160,26 +160,26 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   ];
 
   const indexShool = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'School');
+    return Object.prototype.hasOwnProperty.call(value, 'school');
   });
   const indexTeacher = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'Teacher');
+    return Object.prototype.hasOwnProperty.call(value, 'teacher');
   });
   const indexStudent = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'Student');
+    return Object.prototype.hasOwnProperty.call(value, 'student');
   });
   const indexSection = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'Section');
+    return Object.prototype.hasOwnProperty.call(value, 'section');
   });
   const indexStudentEnrollment = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'StudentEnrollment');
+    return Object.prototype.hasOwnProperty.call(value, 'studentenrollment');
   });
   const indexTeacherRoster = data.findIndex((value, i) => {
-    return Object.prototype.hasOwnProperty.call(value, 'TeacherRoster');
+    return Object.prototype.hasOwnProperty.call(value, 'teacherroster');
   });
 
   // build locations
-  data[indexShool].School!.data!.forEach((x, i) => {
+  data[indexShool].school!.data!.forEach((x, i) => {
     const row = x as MsSchool;
     template[0].locations?.data.push({
       location_id: row['SIS ID'] ? row['SIS ID'] : '',
@@ -187,7 +187,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
     });
   });
   // build students
-  data[indexStudent].Student!.data!.forEach((x) => {
+  data[indexStudent].student!.data!.forEach((x) => {
     const row = x as MsStudent;
     template[1].students?.data.push({
       person_id: row['SIS ID'] ? row['SIS ID'] : '',
@@ -204,7 +204,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   });
 
   // build staff
-  data[indexTeacher].Teacher!.data!.forEach((x) => {
+  data[indexTeacher].teacher!.data!.forEach((x) => {
     const row = x as MsTeacher;
     template[2].staff?.data.push({
       person_id: row['SIS ID'] ? row['SIS ID'] : '',
@@ -219,78 +219,43 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   });
 
   // build courses
-  const sectionDataWithCourseId = data[indexSection].Section!.data.filter(
-    (item) => {
-      return Object.prototype.hasOwnProperty.call(item, 'Course SIS ID');
-    }
-  );
-  const uniqueCourses = uniqueObjects(sectionDataWithCourseId, [
-    'Course SIS ID',
-  ]);
-  if (uniqueCourses.length > 0) {
-    uniqueCourses.forEach((x, i) => {
-      const row = x as MsSection;
-      template[3].courses?.data.push({
-        course_id:
-          (row['Course SIS ID'] !== undefined &&
-            row['Course SIS ID']!.length > 0) ||
-          i === 0
-            ? row['Course SIS ID']
-            : (1000 + i).toString(),
-        course_number:
-          (row['Course Number'] !== undefined &&
-            row['Course Number']!.length > 0) ||
-          i === 0
-            ? row['Course Number']
-            : (1000 + i).toString(),
-        course_name:
-          (row['Course Name'] !== undefined &&
-            row['Course Name']!.length > 0) ||
-          i === 0
-            ? row['Course Name']
-            : row['Section Name'],
-        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
-      });
-    });
-  }
-
-  const sectionsWithoutCourseSisId = data[indexSection].Section!.data.filter(
-    (item, i) => {
-      return (
-        (!Object.prototype.hasOwnProperty.call(item, 'Course SIS ID') ||
-          (item as MsSection)['Course SIS ID'].length < 1) &&
-        i > 0
+  data[indexSection].section!.data.forEach((x, i) => {
+    const row = x as MsSection;
+    if (row['Course SIS ID'] && row['Course SIS ID'].length > 0) {
+      const courseExsits = template[3].courses?.data.findIndex(
+        (item) => item.course_id === row['Course SIS ID']
       );
+      if (courseExsits && courseExsits > 0) {
+        return;
+      }
     }
-  );
-  if (sectionsWithoutCourseSisId) {
-    // first object will be shifted before import to db or export to file
-    // if (template[3].courses!.data.length < 1) {
-    //   template[3].courses?.data.push({
-    //     course_id: '',
-    //     course_number: '',
-    //     course_name: '',
-    //     location_id: '',
-    //   });
-    // }
-    data[indexSection].Section!.data.forEach((x, i) => {
-      const row = x as MsSection;
-      // if (i === 1) {
-      template[3].courses?.data.push({
-        course_id: (2000 + i).toString(),
-        course_number: (2000 + i).toString(),
-        course_name: row['Section Name'],
-        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
-      });
-      // }
+    template[3].courses?.data.push({
+      course_id:
+        (row['Course SIS ID'] !== undefined &&
+          row['Course SIS ID']!.length > 0) ||
+        i === 0
+          ? row['Course SIS ID']
+          : (1000 + i).toString(),
+      course_number:
+        (row['Course Number'] !== undefined &&
+          row['Course Number']!.length > 0) ||
+        i === 0
+          ? row['Course Number']
+          : (1000 + i).toString(),
+      course_name:
+        (row['Course Name'] !== undefined && row['Course Name']!.length > 0) ||
+        i === 0
+          ? row['Course Name']
+          : row['Section Name'],
+      location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
     });
-  }
+  });
 
   const getInstructorSisId = (
     sectionSisId: string,
     index: number
   ): string | '' => {
-    const instructors = (data[indexTeacherRoster].TeacherRoster!
+    const instructors = (data[indexTeacherRoster].teacherroster!
       .data as MsTeacherRoster[]).filter((x) => {
       const row = x as MsTeacherRoster;
       return row['Section SIS ID'] === sectionSisId;
@@ -302,7 +267,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   };
 
   // build classes
-  data[indexSection].Section!.data!.forEach((x, i) => {
+  data[indexSection].section!.data!.forEach((x, i) => {
     const row = x as MsSection;
 
     if (Object.entries(row).length === 0) {
@@ -316,23 +281,90 @@ export function convertData(data: FilesDataMS): FilesDataASM {
             row['Course SIS ID']!.length > 0) ||
           i === 0
             ? row['Course SIS ID']
-            : (2000 + i).toString(),
+            : (1000 + i).toString(),
         instructor_id: getInstructorSisId(row['SIS ID'], 0),
         instructor_id_2: getInstructorSisId(row['SIS ID'], 1),
         instructor_id_3: getInstructorSisId(row['SIS ID'], 2),
+        instructor_id_4: getInstructorSisId(row['SIS ID'], 3),
+        instructor_id_5: getInstructorSisId(row['SIS ID'], 4),
+        instructor_id_6: getInstructorSisId(row['SIS ID'], 5),
+        instructor_id_7: getInstructorSisId(row['SIS ID'], 6),
+        instructor_id_8: getInstructorSisId(row['SIS ID'], 7),
+        instructor_id_9: getInstructorSisId(row['SIS ID'], 8),
+        instructor_id_10: getInstructorSisId(row['SIS ID'], 9),
+        instructor_id_11: getInstructorSisId(row['SIS ID'], 10),
+        instructor_id_12: getInstructorSisId(row['SIS ID'], 11),
+        instructor_id_13: getInstructorSisId(row['SIS ID'], 12),
+        instructor_id_14: getInstructorSisId(row['SIS ID'], 13),
+        instructor_id_15: getInstructorSisId(row['SIS ID'], 14),
+        instructor_id_16: getInstructorSisId(row['SIS ID'], 15),
+        instructor_id_17: getInstructorSisId(row['SIS ID'], 16),
+        instructor_id_18: getInstructorSisId(row['SIS ID'], 17),
+        instructor_id_19: getInstructorSisId(row['SIS ID'], 18),
+        instructor_id_20: getInstructorSisId(row['SIS ID'], 19),
+        instructor_id_21: getInstructorSisId(row['SIS ID'], 20),
+        instructor_id_22: getInstructorSisId(row['SIS ID'], 21),
+        instructor_id_23: getInstructorSisId(row['SIS ID'], 22),
+        instructor_id_24: getInstructorSisId(row['SIS ID'], 23),
+        instructor_id_25: getInstructorSisId(row['SIS ID'], 24),
+        instructor_id_26: getInstructorSisId(row['SIS ID'], 25),
+        instructor_id_27: getInstructorSisId(row['SIS ID'], 26),
+        instructor_id_28: getInstructorSisId(row['SIS ID'], 27),
+        instructor_id_29: getInstructorSisId(row['SIS ID'], 28),
+        instructor_id_30: getInstructorSisId(row['SIS ID'], 29),
+        instructor_id_31: getInstructorSisId(row['SIS ID'], 30),
+        instructor_id_32: getInstructorSisId(row['SIS ID'], 31),
+        instructor_id_33: getInstructorSisId(row['SIS ID'], 33),
+        instructor_id_34: getInstructorSisId(row['SIS ID'], 34),
+        instructor_id_35: getInstructorSisId(row['SIS ID'], 35),
+        instructor_id_36: getInstructorSisId(row['SIS ID'], 36),
+        instructor_id_37: getInstructorSisId(row['SIS ID'], 37),
+        instructor_id_38: getInstructorSisId(row['SIS ID'], 38),
+        instructor_id_39: getInstructorSisId(row['SIS ID'], 39),
+        instructor_id_40: getInstructorSisId(row['SIS ID'], 40),
+        instructor_id_41: getInstructorSisId(row['SIS ID'], 41),
+        instructor_id_42: getInstructorSisId(row['SIS ID'], 42),
+        instructor_id_43: getInstructorSisId(row['SIS ID'], 43),
+        instructor_id_44: getInstructorSisId(row['SIS ID'], 44),
+        instructor_id_45: getInstructorSisId(row['SIS ID'], 45),
+        instructor_id_46: getInstructorSisId(row['SIS ID'], 46),
+        instructor_id_47: getInstructorSisId(row['SIS ID'], 47),
+        instructor_id_48: getInstructorSisId(row['SIS ID'], 48),
+        instructor_id_49: getInstructorSisId(row['SIS ID'], 49),
+        instructor_id_50: getInstructorSisId(row['SIS ID'], 50),
         location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
       });
     }
   });
 
   // build rosters
-  data[indexStudentEnrollment].StudentEnrollment!.data!.forEach((x, i) => {
+  data[indexStudentEnrollment].studentenrollment!.data!.forEach((x, i) => {
     const row = x as MsStudentEnrollement;
     template[5].rosters?.data.push({
       roster_id: i.toString(),
       class_id: row['Section SIS ID'] ? row['Section SIS ID'] : '',
       student_id: row['SIS ID'] ? row['SIS ID'] : '',
     });
+  });
+
+  // remove unnecessary instructor fields
+  let maxInstructor: number;
+  for (let i = 4; i < 51; i += 1) {
+    const nthValues = template[4].classes?.data.filter((item) => {
+      return (
+        item[`instructor_id_${i.toString()}`] &&
+        item[`instructor_id_${i.toString()}`]!.length > 0
+      );
+    });
+    if (nthValues && nthValues.length < 1) {
+      maxInstructor = i - 1;
+      break;
+    }
+  }
+  template[4].classes?.data.forEach((item) => {
+    for (let i = maxInstructor + 1; i < 51; i += 1) {
+      delete item[`instructor_id_${i.toString()}`];
+    }
   });
 
   return template as FilesDataASM;
@@ -423,22 +455,22 @@ export function clearDbHistorical() {
 }
 
 function performImport(data: FilesDataASM) {
-  return db('locations')
-    .insert(getData(data, 'locations'))
+  return db
+    .batchInsert('locations', getData(data, 'locations'))
     .then(() => {
-      return db.batchInsert('students', getData(data, 'students'), 100);
+      return db.batchInsert('students', getData(data, 'students'), 50);
     })
     .then(() => {
-      return db.batchInsert('staff', getData(data, 'staff'), 100);
+      return db.batchInsert('staff', getData(data, 'staff'), 50);
     })
     .then(() => {
-      return db.batchInsert('courses', getData(data, 'courses'), 100);
+      return db.batchInsert('courses', getData(data, 'courses'), 50);
     })
     .then(() => {
-      return db.batchInsert('classes', getData(data, 'classes'), 100);
+      return db.batchInsert('classes', getData(data, 'classes'), 50);
     })
     .then(() => {
-      return db.batchInsert('rosters', getData(data, 'rosters'), 100);
+      return db.batchInsert('rosters', getData(data, 'rosters'), 50);
     })
     .catch((err) => {
       // console.error('Error during import to DB: ', err);
@@ -456,7 +488,10 @@ export function importToDb(data: FilesData, filesStandard: 'APPLE' | 'MS') {
 }
 
 export function validateFile(file: RcFile | string) {
-  const name = typeof file === 'string' ? path.basename(file) : file.name;
+  const name =
+    typeof file === 'string'
+      ? path.basename(file.toLowerCase())
+      : file.name.toLowerCase();
   const type = typeof file === 'string' ? path.extname(file) : file.type;
 
   const validationErrors = [];
@@ -582,7 +617,7 @@ export function getFileNamesFromDir(relativePath: string) {
     .map((dirent) => dirent.name);
   const filesStandard = areArraysEqualSets(names, allowedFileNamesASM)
     ? 'APPLE'
-    : areArraysEqualSets(names, allowedFileNamesMSLowerNoExt) && 'MS';
+    : areArraysEqualSets(names, allowedFileNamesMSNoExt) && 'MS';
 
   return { names, filesStandard };
 }

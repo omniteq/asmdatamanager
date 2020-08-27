@@ -14,7 +14,7 @@ const LazyFileSelectPage = React.lazy(() =>
 );
 
 const FileSelectPage = (props: Record<string, any>) => (
-  <React.Suspense fallback={<h1>Loading...</h1>}>
+  <React.Suspense fallback={<h1>Ładowanie...</h1>}>
     <LazyFileSelectPage {...props} />
   </React.Suspense>
 );

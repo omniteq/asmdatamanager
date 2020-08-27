@@ -11,17 +11,17 @@ const allowedFileNamesASM = [
   'locations.csv',
 ];
 const allowedFileNamesMS = [
-  'Student.csv',
-  'Teacher.csv',
-  'School.csv',
-  'Section.csv',
-  'StudentEnrollment.csv',
-  'TeacherRoster.csv',
+  'student.csv',
+  'teacher.csv',
+  'school.csv',
+  'section.csv',
+  'studentenrollment.csv',
+  'teacherroster.csv',
 ];
 const allowedFileNamesASMNoExt = allowedFileNamesASM.map(
   (i) => path.parse(i).name
 );
-const allowedFileNamesMSLowerNoExt = allowedFileNamesMS.map(
+const allowedFileNamesMSNoExt = allowedFileNamesMS.map(
   (i) => path.parse(i).name
 );
 
@@ -39,7 +39,7 @@ export {
   allowedFileNamesASM,
   allowedFileNamesMS,
   allowedFileNamesASMNoExt,
-  allowedFileNamesMSLowerNoExt,
+  allowedFileNamesMSNoExt,
   MAIN_FOLDER_PATH,
   TEMP_FOLDER_PATH,
 };

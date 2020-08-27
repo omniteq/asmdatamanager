@@ -74,7 +74,6 @@ export default function Send() {
           });
         })
         .then(() => {
-          setSendInProgress(false);
           setOrganizationMetadata(organization.folderName, {
             hostname: form.url,
             username: form.login,
@@ -84,6 +83,8 @@ export default function Send() {
             'archiveFolderPath',
             JSON.stringify(archiveFolderPath)
           );
+          setSendInProgress(false);
+          history.push('/podsumowanie');
           return archiveFolderPath;
         })
         .catch((err: any) => {
@@ -104,7 +105,6 @@ export default function Send() {
           setSendInProgress(false);
         });
     }
-    history.push('/podsumowanie');
   };
 
   useEffect(() => {

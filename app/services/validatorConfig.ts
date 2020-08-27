@@ -65,6 +65,14 @@ const optionalDataConstrains = (maxLenght: number) => {
   };
 };
 
+const notRequiredOptionalDataConstrains = (maxLenght: number) => {
+  return {
+    optional: true,
+    validate: validate.bind(maxLenght),
+    validateError,
+  };
+};
+
 const optionalColumnConstrains = (maxLenght: number) => {
   return {
     optional: true,
@@ -266,6 +274,231 @@ const asmClasses = {
       name: 'instructor_id_3',
       inputName: 'instructor_id_3',
       ...optionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_4',
+      inputName: 'instructor_id_4',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_5',
+      inputName: 'instructor_id_5',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_6',
+      inputName: 'instructor_id_6',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_7',
+      inputName: 'instructor_id_7',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_8',
+      inputName: 'instructor_id_9',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_10',
+      inputName: 'instructor_id_11',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_12',
+      inputName: 'instructor_id_12',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_13',
+      inputName: 'instructor_id_13',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_14',
+      inputName: 'instructor_id_14',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_15',
+      inputName: 'instructor_id_15',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_16',
+      inputName: 'instructor_id_16',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_17',
+      inputName: 'instructor_id_17',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_18',
+      inputName: 'instructor_id_18',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_19',
+      inputName: 'instructor_id_19',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_20',
+      inputName: 'instructor_id_20',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_21',
+      inputName: 'instructor_id_21',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_22',
+      inputName: 'instructor_id_22',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_23',
+      inputName: 'instructor_id_23',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_24',
+      inputName: 'instructor_id_24',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_25',
+      inputName: 'instructor_id_25',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_26',
+      inputName: 'instructor_id_26',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_27',
+      inputName: 'instructor_id_27',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_28',
+      inputName: 'instructor_id_28',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_29',
+      inputName: 'instructor_id_29',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_30',
+      inputName: 'instructor_id_30',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_31',
+      inputName: 'instructor_id_31',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_32',
+      inputName: 'instructor_id_32',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_33',
+      inputName: 'instructor_id_33',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_34',
+      inputName: 'instructor_id_34',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_35',
+      inputName: 'instructor_id_35',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_36',
+      inputName: 'instructor_id_36',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_37',
+      inputName: 'instructor_id_37',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_38',
+      inputName: 'instructor_id_38',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_39',
+      inputName: 'instructor_id_39',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_40',
+      inputName: 'instructor_id_40',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_41',
+      inputName: 'instructor_id_41',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_42',
+      inputName: 'instructor_id_42',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_43',
+      inputName: 'instructor_id_43',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_44',
+      inputName: 'instructor_id_44',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_45',
+      inputName: 'instructor_id_45',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_46',
+      inputName: 'instructor_id_46',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_47',
+      inputName: 'instructor_id_47',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_48',
+      inputName: 'instructor_id_48',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_49',
+      inputName: 'instructor_id_49',
+      ...notRequiredOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_50',
+      inputName: 'instructor_id_50',
+      ...notRequiredOptionalDataConstrains(256),
     },
     {
       name: 'location_id',
