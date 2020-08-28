@@ -134,42 +134,63 @@ export default function Send() {
       .where({ historical: 0 })
       .orWhereNull('historical')
       .then((result) => {
-        template[0].locations = removeHistoricalProperty(result);
+        template[0].locations!.data = removeHistoricalProperty(result);
         return db('students')
           .select()
           .where({ historical: 0 })
           .orWhereNull('historical');
       })
       .then((result) => {
-        template[1].students = removeHistoricalProperty(result);
+        template[1].students!.data = removeHistoricalProperty(result);
         return db('staff')
           .select()
           .where({ historical: 0 })
           .orWhereNull('historical');
       })
       .then((result) => {
-        template[2].staff = removeHistoricalProperty(result);
+        template[2].staff!.data = removeHistoricalProperty(result);
         return db('courses')
           .select()
           .where({ historical: 0 })
           .orWhereNull('historical');
       })
       .then((result) => {
-        template[3].courses = removeHistoricalProperty(result);
+        template[3].courses!.data = removeHistoricalProperty(result);
         return db('classes')
           .select()
           .where({ historical: 0 })
           .orWhereNull('historical');
       })
       .then((result) => {
-        template[4].classes = removeHistoricalProperty(result);
+        template[4].classes!.data = removeHistoricalProperty(result);
         return db('rosters')
           .select()
           .where({ historical: 0 })
           .orWhereNull('historical');
       })
       .then((result) => {
-        template[5].rosters = removeHistoricalProperty(result);
+        template[5].rosters!.data = removeHistoricalProperty(result);
+
+        // remove unnecessary instructor fields
+        let maxInstructor: number;
+        for (let i = 4; i < 51; i += 1) {
+          const nthValues = template[4].classes?.data.filter((item) => {
+            return (
+              item[`instructor_id_${i.toString()}`] &&
+              item[`instructor_id_${i.toString()}`]!.length > 0
+            );
+          });
+          if (nthValues && nthValues.length < 1) {
+            maxInstructor = i - 1;
+            break;
+          }
+        }
+        template[4].classes?.data.forEach((item) => {
+          for (let i = maxInstructor + 1; i < 51; i += 1) {
+            delete item[`instructor_id_${i.toString()}`];
+          }
+        });
+
         setData(template as FilesDataASM);
         return true;
       })

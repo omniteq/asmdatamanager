@@ -115,6 +115,7 @@ export default function FileSelect() {
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
   );
+  const [nextLoading, setNextLoading] = useState(false);
   let wrongFiles: FileWithError[] = [];
   let wrongFilesData: FileWithDataValidation[] = [];
 
@@ -458,6 +459,7 @@ export default function FileSelect() {
   };
 
   const onClickNext = () => {
+    setNextLoading(true);
     clearDbNew()
       .then(() => {
         // let data = newFilesData;
@@ -468,9 +470,13 @@ export default function FileSelect() {
       })
       .then(() => {
         history.push('/podglad');
+        setNextLoading(false);
         return true;
       })
-      .catch((err: any) => console.error(err));
+      .catch((err: any) => {
+        setNextLoading(false);
+        console.error(err);
+      });
   };
 
   const onClickBack = () => {
@@ -712,6 +718,7 @@ export default function FileSelect() {
                 style={{ padding: '0 24px' }}
                 onClick={onClickNext}
                 disabled={!newFilesOk}
+                loading={nextLoading}
               >
                 Przejdź do podglądu
               </Button>

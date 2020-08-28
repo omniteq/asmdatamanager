@@ -64,6 +64,23 @@ const columns = [
   ],
 ];
 
+function debounce(fn: { (): void; apply?: any }, ms: number) {
+  let timer: NodeJS.Timeout | null;
+  return (_: any) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    clearTimeout(timer !== null ? timer : undefined);
+    // eslint-disable-next-line no-shadow
+    timer = setTimeout((_) => {
+      timer = null;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // eslint-disable-next-line prefer-rest-params
+      fn.apply(this, arguments);
+    }, ms);
+  };
+}
+
 export default function Preview() {
   const history = useHistory();
   const [organization, setOrganization] = useState(
@@ -73,6 +90,10 @@ export default function Preview() {
   const [data, setData] = useState<any>();
   const [changesView, setChangesView] = useState('updated');
   const [currentTab, setCurrentTab] = useState('diffStudents');
+  const [dimensions, setDimensions] = React.useState({
+    height: window.innerHeight,
+    width: window.innerWidth,
+  });
 
   const oldFilesString = localStorage.getItem('oldFiles');
   let label;
@@ -92,16 +113,32 @@ export default function Preview() {
   };
 
   useEffect(() => {
+    const debouncedHandleResize = debounce(function handleResize() {
+      setDimensions({
+        height: window.innerHeight,
+        width: window.innerWidth,
+      });
+      console.log(window.innerHeight);
+    }, 500);
+
+    window.addEventListener('resize', debouncedHandleResize);
+
+    return () => {
+      window.removeEventListener('resize', debouncedHandleResize);
+    };
+  });
+
+  useEffect(() => {
     const newData: any[] = [];
     const historicalData: any[] = [];
     getPreviewNewStudents()
       .then((result) => {
-        console.log('new students', result);
+        // console.log('new students', result);
         newData.push(removeHistoricalProperty(result));
         return getPreviewHistoricalStudents();
       })
       .then((result) => {
-        console.log('hist students', result);
+        // console.log('hist students', result);
         historicalData.push(removeHistoricalProperty(result));
         return getPreviewNewClasses();
       })
@@ -157,11 +194,20 @@ export default function Preview() {
     // const components = types.map((type) => {
     return (
       <Table
-        scroll={{ y: 300 }}
+        scroll={{ y: dimensions.height - 550 }}
         key={type}
         columns={columns[columnsIndex]}
         size="small"
         dataSource={data[objectName][type]}
+        rowKey={(row) => {
+          if (objectName === 'diffStudents' || objectName === 'diffStaff') {
+            return row.person_id;
+          }
+          if (objectName === 'diffClasses') {
+            return row.class_id;
+          }
+          return 'unknown';
+        }}
       />
     );
     // });
@@ -204,20 +250,6 @@ export default function Preview() {
             <span style={{ color: '#1890ff' }}> {organization?.name}</span>
           </Title>
         </Row>
-        {/* {label && (
-          <Row justify="end">
-            <Radio.Group
-              onChange={onViewChange}
-              defaultValue={view || 'new'}
-              style={{ marginBottom: 8 }}
-            >
-              <Radio.Button value="new">Nowe dane</Radio.Button>
-
-              <Radio.Button value="historical">{`Wysyłka z ${label}`}</Radio.Button>
-            </Radio.Group>
-          </Row>
-        )} */}
-        {/* {view === 'new' && ( */}
         <Tabs defaultActiveKey="1" onTabClick={onTabClick}>
           <TabPane tab="Uczniowie" key="diffStudents">
             {data && (
@@ -261,20 +293,6 @@ export default function Preview() {
             )}
           </TabPane>
         </Tabs>
-        {/* )} */}
-        {/* {view === 'historical' && (
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="Uczniowie" key="1">
-              Content of Tab Pane 1 historical
-            </TabPane>
-            <TabPane tab="Nauczyciele" key="2">
-              Content of Tab Pane 2 historical
-            </TabPane>
-            <TabPane tab="Klasy" key="3">
-              Content of Tab Pane 3 historical
-            </TabPane>
-          </Tabs>
-        )} */}
         <Row
           align="bottom"
           style={{
@@ -294,7 +312,7 @@ export default function Preview() {
                 style={{ padding: '0 24px' }}
                 onClick={onClickBack}
               >
-                Wróć do wyboru organizacji
+                Wróć do wyboru plików
               </Button>
             </Col>
             <Col>

@@ -456,21 +456,21 @@ export function clearDbHistorical() {
 
 function performImport(data: FilesDataASM) {
   return db
-    .batchInsert('locations', getData(data, 'locations'))
+    .batchInsert('locations', getData(data, 'locations'), 10)
     .then(() => {
-      return db.batchInsert('students', getData(data, 'students'), 50);
+      return db.batchInsert('students', getData(data, 'students'), 10);
     })
     .then(() => {
-      return db.batchInsert('staff', getData(data, 'staff'), 50);
+      return db.batchInsert('staff', getData(data, 'staff'), 10);
     })
     .then(() => {
-      return db.batchInsert('courses', getData(data, 'courses'), 50);
+      return db.batchInsert('courses', getData(data, 'courses'), 10);
     })
     .then(() => {
-      return db.batchInsert('classes', getData(data, 'classes'), 50);
+      return db.batchInsert('classes', getData(data, 'classes'), 10);
     })
     .then(() => {
-      return db.batchInsert('rosters', getData(data, 'rosters'), 50);
+      return db.batchInsert('rosters', getData(data, 'rosters'), 10);
     })
     .catch((err) => {
       // console.error('Error during import to DB: ', err);
@@ -826,4 +826,9 @@ export function addPassPolicy(data: FilesData, passPolicy: LabeledValue) {
     }
   });
   return data;
+}
+
+export function removeFolder(dirToDelete: string) {
+  const dirToRemove = path.join(MAIN_FOLDER_PATH, dirToDelete);
+  fs.rmdirSync(dirToRemove, { recursive: true });
 }
