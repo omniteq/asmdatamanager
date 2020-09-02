@@ -172,23 +172,34 @@ export default function Send() {
         template[5].rosters!.data = removeHistoricalProperty(result);
 
         // remove unnecessary instructor fields
-        let maxInstructor: number;
-        for (let i = 4; i < 51; i += 1) {
-          const nthValues = template[4].classes?.data.filter((item) => {
-            return (
-              item[`instructor_id_${i.toString()}`] &&
-              item[`instructor_id_${i.toString()}`]!.length > 0
-            );
-          });
-          if (nthValues && nthValues.length < 1) {
-            maxInstructor = i - 1;
-            break;
-          }
-        }
+        // let maxInstructor: number;
+        // for (let i = 4; i < 51; i += 1) {
+        //   const nthValues = template[4].classes?.data.filter((item) => {
+        //     return (
+        //       item[`instructor_id_${i.toString()}`] &&
+        //       item[`instructor_id_${i.toString()}`]!.length > 0
+        //     );
+        //   });
+        //   if (nthValues && nthValues.length < 1) {
+        //     maxInstructor = i - 1;
+        //     break;
+        //   }
+        // }
+        // template[4].classes?.data.forEach((item) => {
+        //   for (let i = maxInstructor + 1; i < 51; i += 1) {
+        //     delete item[`instructor_id_${i.toString()}`];
+        //   }
+        // });
+
         template[4].classes?.data.forEach((item) => {
-          for (let i = maxInstructor + 1; i < 51; i += 1) {
-            delete item[`instructor_id_${i.toString()}`];
-          }
+          Object.keys(item).forEach((key) => {
+            if (
+              key.includes('instructor_id_') &&
+              (item[key] === null || item[key]!.length < 1)
+            ) {
+              delete item[key];
+            }
+          });
         });
 
         setData(template as FilesDataASM);

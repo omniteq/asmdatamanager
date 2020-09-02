@@ -113,7 +113,11 @@ export default function FileSelect() {
         }
   );
 
-  const [vulcan, setVulcan] = useState(false);
+  const [vulcan, setVulcan] = useState(
+    localStorage.getItem('vulcan') !== null
+      ? JSON.parse(localStorage!.getItem('vulcan')!)
+      : false
+  );
 
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
@@ -619,7 +623,7 @@ export default function FileSelect() {
                 checked={vulcan}
                 onChange={(e) => {
                   setVulcan((state) => {
-                    localStorage.setItem('volcan', JSON.stringify(!state));
+                    localStorage.setItem('vulcan', JSON.stringify(!state));
                     return !state;
                   });
                 }}
