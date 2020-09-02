@@ -15,6 +15,7 @@ import {
   notification,
   Tooltip,
   Divider,
+  Checkbox,
 } from 'antd';
 import {
   InboxOutlined,
@@ -112,6 +113,8 @@ export default function FileSelect() {
         }
   );
 
+  const [vulcan, setVulcan] = useState(false);
+
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
   );
@@ -151,7 +154,7 @@ export default function FileSelect() {
     if (standard === 'MS' || standard === 'APPLE') {
       let dataToImport = data;
       if (standard === 'MS') {
-        dataToImport = convertData(data as FilesDataMS);
+        dataToImport = convertData(data as FilesDataMS, vulcan);
       }
       if (showMissPassPolicy) {
         dataToImport = addPassPolicy(dataToImport, passPolicy);
@@ -484,7 +487,7 @@ export default function FileSelect() {
   };
 
   const onDownloadConvertedFiles = () => {
-    const convertedData = convertData(newFilesData as FilesDataMS);
+    const convertedData = convertData(newFilesData as FilesDataMS, vulcan);
     const folder = dialog
       .showOpenDialog({
         properties: ['openDirectory'],
@@ -608,12 +611,34 @@ export default function FileSelect() {
             )}
           </Col>
         </Row>
+        {newFilesOk && newFilesStandard === 'MS' && (
+          <>
+            <Divider />
+            <Row style={{ padding: '18px 0px' }}>
+              <Checkbox
+                checked={vulcan}
+                onChange={(e) => {
+                  setVulcan((state) => {
+                    localStorage.setItem('volcan', JSON.stringify(!state));
+                    return !state;
+                  });
+                }}
+              >
+                <Text>
+                  Pliki pochodzą z systemu Vulcan. Zaznaczenie tej opcji
+                  powoduje rozbicie wartości w kolumnie Section Name pliku
+                  Section.csv (zalecane).
+                </Text>
+              </Checkbox>
+            </Row>
+          </>
+        )}
         {newFilesOk && showMissPassPolicy && (
           <>
             <Divider />
             <Row>
               <Text>
-                2. W pliku listy uczniów, istnieją rekordy, które nie posiadają
+                W pliku listy uczniów, istnieją rekordy, które nie posiadają
                 zdefiniowanego pola <Text code>password_policy</Text>. Jaką
                 politykę chcesz zastosować?
               </Text>
@@ -654,9 +679,9 @@ export default function FileSelect() {
           <>
             <Row>
               <Text>
-                {showMissPassPolicy ? '3. ' : '2. '}Wybierz historyczną wysyłkę,
-                z którą chcesz porównać załadowany powyżej zestaw plików. To
-                pozwoli na przegląd różnic przed wysyłką.
+                Wybierz historyczną wysyłkę, z którą chcesz porównać załadowany
+                powyżej zestaw plików. To pozwoli na przegląd różnic przed
+                wysyłką.
               </Text>
             </Row>
             <Row style={{ padding: '18px 0px' }}>

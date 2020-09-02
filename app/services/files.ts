@@ -149,7 +149,10 @@ export function getErrorDesc(error: string) {
   }
 }
 
-export function convertData(data: FilesDataMS): FilesDataASM {
+export function convertData(
+  data: FilesDataMS,
+  isVulcan?: boolean
+): FilesDataASM {
   const template = [
     { locations: { data: [] as AsmLocation[] } },
     { students: { data: [] as AsmStudent[] } },
@@ -221,6 +224,35 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   // build courses
   data[indexSection].section!.data.forEach((x, i) => {
     const row = x as MsSection;
+
+    let courseNumber =
+      (row['Course Number'] !== undefined &&
+        row['Course Number']!.length > 0) ||
+      i === 0
+        ? row['Course Number']
+        : (1000 + i).toString();
+
+    let courseName =
+      (row['Course Name'] !== undefined && row['Course Name']!.length > 0) ||
+      i === 0
+        ? row['Course Name']
+        : row['Section Name'];
+
+    if (isVulcan && i > 0) {
+      const words = row['Section Name'].split(' ');
+      // eslint-disable-next-line prefer-destructuring
+      courseNumber = words[0];
+      // eslint-disable-next-line prefer-destructuring
+      courseName = words[0];
+
+      const courseExsits = template[3].courses?.data.findIndex(
+        (item) => item.course_number === courseNumber
+      );
+      if (courseExsits && courseExsits > 0) {
+        return;
+      }
+    }
+
     if (row['Course SIS ID'] && row['Course SIS ID'].length > 0) {
       const courseExsits = template[3].courses?.data.findIndex(
         (item) => item.course_id === row['Course SIS ID']
@@ -229,6 +261,7 @@ export function convertData(data: FilesDataMS): FilesDataASM {
         return;
       }
     }
+
     template[3].courses?.data.push({
       course_id:
         (row['Course SIS ID'] !== undefined &&
@@ -236,17 +269,8 @@ export function convertData(data: FilesDataMS): FilesDataASM {
         i === 0
           ? row['Course SIS ID']
           : (1000 + i).toString(),
-      course_number:
-        (row['Course Number'] !== undefined &&
-          row['Course Number']!.length > 0) ||
-        i === 0
-          ? row['Course Number']
-          : (1000 + i).toString(),
-      course_name:
-        (row['Course Name'] !== undefined && row['Course Name']!.length > 0) ||
-        i === 0
-          ? row['Course Name']
-          : row['Section Name'],
+      course_number: courseNumber,
+      course_name: courseName,
       location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
     });
   });
@@ -269,19 +293,37 @@ export function convertData(data: FilesDataMS): FilesDataASM {
   // build classes
   data[indexSection].section!.data!.forEach((x, i) => {
     const row = x as MsSection;
+    let classNumber = row['Section Number'] ? row['Section Number'] : '';
+    let courseId =
+      (row['Course SIS ID'] !== undefined &&
+        row['Course SIS ID']!.length > 0) ||
+      i === 0
+        ? row['Course SIS ID']
+        : (1000 + i).toString();
+
+    if (isVulcan && i > 0) {
+      const words = row['Section Name'].split(' ');
+      // eslint-disable-next-line prefer-destructuring
+      const courseNumber = words[0];
+      const sectionName = row['Section Name'];
+      const beginClassNumber = sectionName.indexOf(' ') + 1;
+      const endClassNumber = sectionName.indexOf('(') - 1;
+      classNumber = sectionName.substring(beginClassNumber, endClassNumber);
+      courseId = template[3].courses!.data.find((element) => {
+        return (
+          element.course_number === courseNumber &&
+          element.location_id === row['School SIS ID']
+        );
+      })!.course_id!;
+    }
 
     if (Object.entries(row).length === 0) {
       template[4].classes?.data.push({} as AsmClass);
     } else {
       template[4].classes?.data.push({
         class_id: row['SIS ID'] ? row['SIS ID'] : '',
-        class_number: row['Section Number'] ? row['Section Number'] : '',
-        course_id:
-          (row['Course SIS ID'] !== undefined &&
-            row['Course SIS ID']!.length > 0) ||
-          i === 0
-            ? row['Course SIS ID']
-            : (1000 + i).toString(),
+        class_number: classNumber,
+        course_id: courseId,
         instructor_id: getInstructorSisId(row['SIS ID'], 0),
         instructor_id_2: getInstructorSisId(row['SIS ID'], 1),
         instructor_id_3: getInstructorSisId(row['SIS ID'], 2),

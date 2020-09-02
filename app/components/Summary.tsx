@@ -20,20 +20,20 @@ export default function Summary() {
     getCurrentWindow().reload();
   };
 
-  function showConfirm() {
-    confirm({
-      title: 'Wyczyścić ustawienia i rozpocząć od nowa?',
-      icon: <ExclamationCircleOutlined />,
-      content:
-        'Aktualne ustawienia kreatora wysyłki zostaną wyczyszczone. Żande pliki nie zostaną usunięte z Twojego dysku.',
-      onOk() {
-        restart();
-      },
-      onCancel() {
-        console.log('Cancel');
-      },
-    });
-  }
+  // function showConfirm() {
+  //   confirm({
+  //     title: 'Wyczyścić ustawienia i rozpocząć od nowa?',
+  //     icon: <ExclamationCircleOutlined />,
+  //     content:
+  //       'Aktualne ustawienia kreatora wysyłki zostaną wyczyszczone. Żande pliki nie zostaną usunięte z Twojego dysku.',
+  //     onOk() {
+  //       restart();
+  //     },
+  //     onCancel() {
+  //       console.log('Cancel');
+  //     },
+  //   });
+  // }
   return (
     <>
       <div className="main">
@@ -62,7 +62,7 @@ export default function Summary() {
             >
               Zakończ
             </Button>,
-            <Button onClick={showConfirm} key="restart">
+            <Button onClick={restart} key="restart">
               Zacznij od nowa
             </Button>,
           ]}
