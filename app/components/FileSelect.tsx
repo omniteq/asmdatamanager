@@ -622,7 +622,7 @@ export default function FileSelect() {
               <Checkbox
                 checked={vulcan}
                 onChange={(e) => {
-                  setVulcan((state) => {
+                  setVulcan((state: boolean) => {
                     localStorage.setItem('vulcan', JSON.stringify(!state));
                     return !state;
                   });

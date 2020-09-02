@@ -1,7 +1,7 @@
 {
   "name": "asm-data-manager",
   "productName": "ASM Data Manager",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "This app allows easy conversion of data from Microsoft School Data Sync to Apple School Manager. Apart from that, it validates files, displays friendly preview, uploads the zip to SFTP, and archive files in a structured manner.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -63,6 +63,12 @@
       "main.prod.js.map",
       "package.json"
     ],
+    "mac": {
+      "hardenedRuntime": true,
+      "entitlements": "./resources/entitlements.mac.inherit.plist",
+      "entitlementsInherit": "./resources/entitlements.mac.inherit.plist",
+      "target": ["dmg"]
+    },
     "dmg": {
       "contents": [
         {
@@ -82,14 +88,6 @@
         "nsis",
         "msi"
       ]
-    },
-    "linux": {
-      "target": [
-        "deb",
-        "rpm",
-        "AppImage"
-      ],
-      "category": "Development"
     },
     "directories": {
       "buildResources": "resources",

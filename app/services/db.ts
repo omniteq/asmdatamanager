@@ -6,7 +6,7 @@ import knex from 'knex';
 const db = knex({
   client: 'sqlite3',
   connection: {
-    filename: 'db.db',
+    filename: ':memory:',
   },
   useNullAsDefault: true,
   debug: process.env.NODE_ENV === 'development',
