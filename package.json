@@ -18,7 +18,7 @@
     "package": "yarn build && electron-builder build --publish never",
     "package-all": "yarn build && electron-builder build -mwl",
     "package-ci": "yarn postinstall && yarn build && electron-builder --publish always",
-    "package-ci-all": "yarn postinstall && yarn build && electron-builder -mwl --publish always",
+    "package-ci-all": "yarn postinstall && yarn build && electron-builder -mw --publish always",
     "package-mac": "yarn build && electron-builder build --mac",
     "package-linux": "yarn build && electron-builder build --linux",
     "package-win": "yarn build && electron-builder build --win --x64",
@@ -88,6 +88,14 @@
         "nsis",
         "msi"
       ]
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "rpm",
+        "AppImage"
+      ],
+      "category": "Development"
     },
     "directories": {
       "buildResources": "resources",
