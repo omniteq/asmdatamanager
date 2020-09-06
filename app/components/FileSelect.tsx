@@ -47,9 +47,9 @@ import {
   clearDbHistorical,
   clearDbNew,
   generateFiles,
-  convertData,
   addPassPolicy,
 } from '../services/files';
+import Converter from '../services/converter';
 import ValidationError, {
   FileWithDataValidation,
   FileWithError,
@@ -113,11 +113,11 @@ export default function FileSelect() {
         }
   );
 
-  const [vulcan, setVulcan] = useState(
-    localStorage.getItem('vulcan') !== null
-      ? JSON.parse(localStorage!.getItem('vulcan')!)
-      : false
-  );
+  // const [vulcan, setVulcan] = useState(
+  //   localStorage.getItem('vulcan') !== null
+  //     ? JSON.parse(localStorage!.getItem('vulcan')!)
+  //     : false
+  // );
 
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
@@ -158,12 +158,12 @@ export default function FileSelect() {
     if (standard === 'MS' || standard === 'APPLE') {
       let dataToImport = data;
       if (standard === 'MS') {
-        dataToImport = convertData(data as FilesDataMS, vulcan);
+        dataToImport = new Converter(data as FilesDataMS).convertData();
       }
       if (showMissPassPolicy) {
-        dataToImport = addPassPolicy(dataToImport, passPolicy);
+        dataToImport = addPassPolicy(dataToImport, passPolicy) as FilesDataMS;
       }
-      return importToDb(dataToImport, standard).catch((err) => {
+      return importToDb(dataToImport).catch((err) => {
         console.error(err);
         let errMsg = err.message;
         if (err.message.includes('FOREIGN KEY') === true) {
@@ -491,7 +491,11 @@ export default function FileSelect() {
   };
 
   const onDownloadConvertedFiles = () => {
-    const convertedData = convertData(newFilesData as FilesDataMS, vulcan);
+    const convertedData = new Converter(newFilesData as FilesDataMS, {
+      mergeClasses: true,
+      classNumberColumnName: 'Section Name',
+      classYear: 2020,
+    }).convertData();
     const folder = dialog
       .showOpenDialog({
         properties: ['openDirectory'],
@@ -615,12 +619,12 @@ export default function FileSelect() {
             )}
           </Col>
         </Row>
-        {newFilesOk && newFilesStandard === 'MS' && (
+        {/* {newFilesOk && newFilesStandard === 'MS' && (
           <>
             <Divider />
             <Row style={{ padding: '18px 0px' }}>
               <Checkbox
-                checked={vulcan}
+                // checked={vulcan}
                 onChange={(e) => {
                   setVulcan((state: boolean) => {
                     localStorage.setItem('vulcan', JSON.stringify(!state));
@@ -636,7 +640,7 @@ export default function FileSelect() {
               </Checkbox>
             </Row>
           </>
-        )}
+        )} */}
         {newFilesOk && showMissPassPolicy && (
           <>
             <Divider />
