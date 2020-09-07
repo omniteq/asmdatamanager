@@ -17,7 +17,7 @@ import {
   MsSection,
   MsFile,
 } from 'files';
-import { FilesASM, Options } from '../converter';
+import { FilesASM, Options, Parser, SectionColumns } from '../converter';
 import findObjectByProperty from './utils';
 
 function generateProperties(
@@ -204,51 +204,221 @@ export default class Converter {
   }
 
   private _buildCourses() {
-    this._Section.forEach((x, i) => {
-      const row = x as MsSection;
+    let subjectColumnName: SectionColumns;
+    let subjectDestColumnName: 'class_number' | 'course_name';
+    let subjectParser: Parser | undefined;
+    if (
+      this.options &&
+      this.options.subjectColumnName &&
+      this.options.subjectDestColumnName
+    ) {
+      subjectColumnName = this.options.subjectColumnName;
+      subjectDestColumnName = this.options.subjectDestColumnName;
+      subjectParser = this.options.parsers?.find(
+        (parser) => parser.isSubject === true
+      );
+    }
+    if (
+      this.options?.singleCourse === true &&
+      this.options?.singleCourseName === undefined &&
+      this.options!.singleCourseName!.length < 1
+    )
+      throw Error(
+        'Course name cannot be empty if this.options.singleCourse = true'
+      );
 
-      if (row['Course SIS ID'] && row['Course SIS ID'].length > 0) {
-        const courseExsits = this._templateCourses.findIndex(
-          (item) => item.course_id === row['Course SIS ID']
-        );
-        if (courseExsits && courseExsits > 0) {
-          return;
+    // create only one course for location if singleCourse is true
+    if (this.options?.singleCourse === true) {
+      this._Shool.forEach((x, i) => {
+        const row = x as MsSchool;
+        this._templateCourses.push({
+          course_id: row['SIS ID'] ? row['SIS ID'] : '',
+          course_number:
+            this.options && this.options.singleCourseName
+              ? this.options.singleCourseName
+              : i.toString(),
+          course_name:
+            this.options && this.options.singleCourseName
+              ? this.options.singleCourseName
+              : i.toString(),
+          location_id: row['SIS ID'] ? row['SIS ID'] : '',
+        });
+      });
+    } else {
+      this._Section.forEach((x, i) => {
+        const row = x as MsSection;
+        if (Object.entries(row).length === 0) {
+          this._templateCourses.push({} as AsmCourse);
+        } else {
+          if (row['Course SIS ID'] && row['Course SIS ID'].length > 0) {
+            const courseExsits = this._templateCourses.findIndex(
+              (item) => item.course_id === row['Course SIS ID']
+            );
+            if (courseExsits && courseExsits > 0) {
+              return;
+            }
+          }
+
+          let courseName =
+            (row['Course Name'] !== undefined &&
+              row['Course Name']!.length > 0) ||
+            i === 0
+              ? row['Course Name']
+              : row['Section Name'];
+
+          if (subjectDestColumnName === 'course_name') {
+            courseName = subjectParser
+              ? subjectParser?.parserFunc(row[subjectColumnName])
+              : row[subjectColumnName] || '';
+          }
+
+          this._templateCourses.push({
+            course_id:
+              (row['Course SIS ID'] !== undefined &&
+                row['Course SIS ID']!.length > 0) ||
+              i === 0
+                ? row['Course SIS ID']
+                : (1000 + i).toString(),
+            course_number:
+              (row['Course Number'] !== undefined &&
+                row['Course Number']!.length > 0) ||
+              i === 0
+                ? row['Course Number']
+                : (1000 + i).toString(),
+            course_name: courseName,
+            location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
+          });
         }
+      });
+    }
+  }
+
+  private _buildMergedCourses() {
+    let subjectColumnName: SectionColumns;
+    let subjectDestColumnName: 'class_number' | 'course_name';
+    let subjectParser: Parser | undefined;
+    if (
+      this.options &&
+      this.options.subjectColumnName &&
+      this.options.subjectDestColumnName
+    ) {
+      subjectColumnName = this.options.subjectColumnName;
+      subjectDestColumnName = this.options.subjectDestColumnName;
+      subjectParser = this.options.parsers?.find(
+        (parser) => parser.isSubject === true
+      );
+    }
+    if (
+      this.options &&
+      this.options.classYear &&
+      this.options.classNumberColumnName
+    ) {
+      const { classNumberColumnName, classYear } = this.options;
+      let parser: Parser | undefined;
+      // is there a parser for section::classNumberColumnName?
+      const parserIndex = this.options?.parsers?.findIndex(
+        (element) =>
+          element.fileName === 'section' &&
+          element.columnName === classNumberColumnName
+      );
+      if (parserIndex !== undefined && parserIndex > -1) {
+        parser =
+          this.options &&
+          this.options.parsers &&
+          this.options.parsers[parserIndex];
       }
 
-      this._templateCourses.push({
-        course_id:
-          (row['Course SIS ID'] !== undefined &&
-            row['Course SIS ID']!.length > 0) ||
-          i === 0
-            ? row['Course SIS ID']
-            : (1000 + i).toString(),
-        course_number:
-          (row['Course Number'] !== undefined &&
-            row['Course Number']!.length > 0) ||
-          i === 0
-            ? row['Course Number']
-            : (1000 + i).toString(),
-        course_name:
-          (row['Course Name'] !== undefined &&
-            row['Course Name']!.length > 0) ||
-          i === 0
-            ? row['Course Name']
-            : row['Section Name'],
-        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
+      this._Section.forEach((x, i) => {
+        const row = x as MsSection;
+
+        if (Object.entries(row).length === 0) {
+          this._templateCourses.push({} as AsmClass);
+        } else {
+          let classNumber;
+          if (parser) {
+            classNumber = parser?.parserFunc(row[classNumberColumnName]);
+          }
+
+          let courseName = classNumber || row[classNumberColumnName];
+
+          if (subjectDestColumnName === 'course_name') {
+            courseName = subjectParser
+              ? subjectParser?.parserFunc(row[subjectColumnName])
+              : row[subjectColumnName] || '';
+          }
+
+          const courseId = `${row['School SIS ID']}_${
+            classNumber || row[classNumberColumnName]
+          }_${classYear}`;
+
+          // check if course exists
+          let courseIndex = this._templateCourses.findIndex((element) => {
+            return element.course_id === courseId;
+          });
+
+          // if class doesn't exist, create one
+          if (courseIndex === -1) {
+            courseIndex =
+              this._templateCourses.push({
+                course_id: courseId,
+                course_name: courseName,
+                course_number: classNumber || row[classNumberColumnName],
+                location_id: row['School SIS ID'],
+              }) - 1;
+          }
+        }
       });
-    });
+      // modify classes course_id to add to a new artficial courses
+      this._templateClasses.forEach((element, y) => {
+        if (Object.entries(element).length !== 0) {
+          const sectionRow = this._Section.find(
+            (section) => section['SIS ID'] === element.class_id
+          );
+          const classNumber =
+            (parser &&
+              parser?.parserFunc(sectionRow![classNumberColumnName])) ||
+            sectionRow![classNumberColumnName];
+          element.course_id = `${sectionRow!['School SIS ID']}_${
+            classNumber || sectionRow![classNumberColumnName]
+          }_${classYear}`;
+        }
+      });
+    } else {
+      throw new Error('Missing options');
+    }
   }
 
   private _buildClasses() {
+    let subjectColumnName: SectionColumns;
+    let subjectDestColumnName: 'class_number' | 'course_name';
+    let subjectParser: Parser | undefined;
+    if (
+      this.options &&
+      this.options.subjectColumnName &&
+      this.options.subjectDestColumnName
+    ) {
+      subjectColumnName = this.options.subjectColumnName;
+      subjectDestColumnName = this.options.subjectDestColumnName;
+      subjectParser = this.options.parsers?.find(
+        (parser) => parser.isSubject === true
+      );
+    }
     this._Section.forEach((x, i) => {
       const row = x as MsSection;
       if (Object.entries(row).length === 0) {
         this._templateClasses.push({} as AsmClass);
       } else {
+        let classNumber = row['Section Number'] ? row['Section Number'] : '';
+
+        if (subjectDestColumnName === 'class_number') {
+          classNumber = subjectParser
+            ? subjectParser?.parserFunc(row[subjectColumnName])
+            : row[subjectColumnName] || '';
+        }
+
         this._templateClasses.push({
           class_id: row['SIS ID'] ? row['SIS ID'] : '',
-          class_number: row['Section Number'] ? row['Section Number'] : '',
+          class_number: classNumber,
           course_id:
             (row['Course SIS ID'] !== undefined &&
               row['Course SIS ID']!.length > 0) ||
@@ -269,17 +439,6 @@ export default class Converter {
     });
   }
 
-  private _buildRosters() {
-    this._StudentEnrollment.forEach((x, i) => {
-      const row = x as MsStudentEnrollement;
-      this._templateRosters.push({
-        roster_id: i.toString(),
-        class_id: row['Section SIS ID'] ? row['Section SIS ID'] : '',
-        student_id: row['SIS ID'] ? row['SIS ID'] : '',
-      });
-    });
-  }
-
   private _buildMargedClasses() {
     if (
       this.options &&
@@ -287,14 +446,30 @@ export default class Converter {
       this.options.classNumberColumnName
     ) {
       const { classNumberColumnName, classYear } = this.options;
+      this._templateRosters.push({} as AsmRoster);
       this._Section.forEach((x, i) => {
         const row = x as MsSection;
 
         if (Object.entries(row).length === 0) {
           this._templateClasses.push({} as AsmClass);
         } else {
-          // TODO: parsing value according to the user-defined schema
-          const classId = `${row['School SIS ID']}_${row[classNumberColumnName]}_${classYear}`;
+          let classNumber;
+          // is there a parser for section::classNumberColumnName?
+          const parserIndex = this.options?.parsers?.findIndex(
+            (element) =>
+              element.fileName === 'section' &&
+              element.columnName === classNumberColumnName
+          );
+          if (parserIndex !== undefined && parserIndex > -1) {
+            const parser =
+              this.options &&
+              this.options.parsers &&
+              this.options.parsers[parserIndex];
+            classNumber = parser?.parserFunc(row[classNumberColumnName]);
+          }
+          const classId = `${row['School SIS ID']}_${
+            classNumber || row[classNumberColumnName]
+          }_${classYear}`;
 
           // check if class exists
           let classIndex = this._templateClasses.findIndex((element) => {
@@ -307,18 +482,18 @@ export default class Converter {
               this._templateClasses.push({
                 class_id: classId,
                 location_id: row['School SIS ID'],
-                class_number: row[classNumberColumnName],
+                class_number: classNumber || row[classNumberColumnName],
                 course_id:
-                  (row['Course SIS ID'] !== undefined &&
+                  (this.options?.singleCourse && row['School SIS ID']) ||
+                  ((row['Course SIS ID'] !== undefined &&
                     row['Course SIS ID']!.length > 0) ||
                   i === 0
                     ? row['Course SIS ID']
-                    : (1000 + i).toString(),
+                    : (1000 + i).toString()),
               }) - 1;
           }
 
           // enroll students to a new artficial class
-          this._templateRosters.push({} as AsmRoster);
           this._StudentEnrollment.forEach((studentEnrollment, j) => {
             if (studentEnrollment['Section SIS ID'] === row['SIS ID']) {
               const rosterIndex = this._templateRosters.findIndex((roster) => {
@@ -350,27 +525,19 @@ export default class Converter {
                   pair[1] === teacherRoster['SIS ID']
                 );
               });
+              const instructorsCount = classesEntries.filter((pair) => {
+                return pair[0].includes('instructor_id');
+              }).length;
 
               // if not, add id to the first empty instructor_id_x field
               if (instructorExists.length < 1) {
-                // find and empty field
-                const emptyInstructorFieldIndex = classesEntries.findIndex(
-                  (pair) => {
-                    return (
-                      pair[0].includes('instructor_id') &&
-                      (pair[1] === undefined ||
-                        pair[1] === null ||
-                        pair[1]?.length < 1)
-                    );
-                  }
-                );
-                const freeInstructorField =
-                  emptyInstructorFieldIndex !== -1
-                    ? classesEntries[emptyInstructorFieldIndex][0]
-                    : 'instructor_id';
+                const instructorField =
+                  instructorsCount < 1
+                    ? 'instructor_id'
+                    : `instructor_id_${instructorsCount + 1}`;
 
                 // add instructor id
-                this._templateClasses[classIndex][freeInstructorField] =
+                this._templateClasses[classIndex][instructorField] =
                   teacherRoster['SIS ID'];
               }
             }
@@ -382,17 +549,33 @@ export default class Converter {
     }
   }
 
+  private _buildRosters() {
+    this._StudentEnrollment.forEach((x, i) => {
+      const row = x as MsStudentEnrollement;
+      this._templateRosters.push({
+        roster_id: i.toString(),
+        class_id: row['Section SIS ID'] ? row['Section SIS ID'] : '',
+        student_id: row['SIS ID'] ? row['SIS ID'] : '',
+      });
+    });
+  }
+
   convertData() {
     this._buildLocations();
     this._buildStudents();
     this._buildStaff();
-    this._buildCourses();
     if (this.options?.mergeClasses) {
       this._buildMargedClasses();
     } else {
       this._buildClasses();
+      this._buildRosters();
     }
-    this._buildRosters();
+    if (this.options?.mergeCourses) {
+      // this modifies classes so needs to be called after classes are build
+      this._buildMergedCourses();
+    } else {
+      this._buildCourses();
+    }
     removeEmptyColumns(this._templateClasses, 'instructor_id_');
     return this._template;
   }

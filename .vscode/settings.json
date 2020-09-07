@@ -9,5 +9,34 @@
     // "**/node_modules": true,
     "**/bower_components": true,
     "**/dist": true
-  }
+  },
+  "todohighlight.exclude": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.vscode/**",
+    "**/.github/**",
+    "**/_output/**",
+    "**/*.min.*",
+    "**/*.map",
+    "**/.next/**",
+    "**/dll/**",
+    "**/internals/**"
+  ],
+  "todo.file.exclude": [
+    "**/.!(todo|todos|task|tasks)/**",
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.vscode/**",
+    "**/.github/**",
+    "**/_output/**",
+    "**/*.min.*",
+    "**/*.map",
+    "**/.next/**",
+    "**/dll/renderer.dev.dll.js",
+    "**/internals/**"
+  ]
 }

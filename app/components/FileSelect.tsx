@@ -58,7 +58,7 @@ import {
   allowedFileNamesASMNoExt,
   allowedFileNamesMSNoExt,
 } from '../services/const';
-import db from '../services/db';
+import parse from '../services/parser';
 
 const { dialog } = remote;
 
@@ -366,8 +366,6 @@ export default function FileSelect() {
   }, [oldFiles]);
 
   const onBeforeUpload = async (file: RcFile, fileList: RcFile[]) => {
-    // TODO: wybór polityki haseł
-    // TODO: zdefiniowanie domyślnego kursu typu "Klasy"
     const validFile = validateFile(file);
     let reject = false;
 
@@ -492,9 +490,35 @@ export default function FileSelect() {
 
   const onDownloadConvertedFiles = () => {
     const convertedData = new Converter(newFilesData as FilesDataMS, {
-      mergeClasses: true,
+      // mergeClasses: true,
       classNumberColumnName: 'Section Name',
       classYear: 2020,
+      // singleCourse: true,
+      // singleCourseName: 'Klasa',
+      // mergeCourses: true,
+      subjectColumnName: 'Section Name',
+      subjectDestColumnName: 'course_name',
+      parsers: [
+        {
+          columnName: 'Section Name',
+          fileName: 'section',
+          parserFunc: (value) =>
+            parse(value, {
+              separator: ' ',
+              firstWord: 1,
+            }),
+        },
+        {
+          isSubject: true,
+          parserFunc: (value) =>
+            parse(value, {
+              separator: ' ',
+              firstWord: 2,
+              howManyWords: 10,
+              strToRemove: ['(SP14) [2019/2020]'],
+            }),
+        },
+      ],
     }).convertData();
     const folder = dialog
       .showOpenDialog({
