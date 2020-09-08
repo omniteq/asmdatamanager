@@ -1,13 +1,22 @@
+export const removeSubstrings = (value: string, strToRemove: string[]) => {
+  let text = value;
+  if (strToRemove && strToRemove?.length > 0) {
+    strToRemove.forEach((pattern) => {
+      text = text.replaceAll(pattern, '').trim();
+    });
+  }
+  return text;
+};
+/**
+ * @param options  ´fromRight´ - count ´firstWord´ from right .
+ */
 const parse: PraserFunc = (value, options) => {
   if (value !== null) {
     const { separator, firstWord, fromRight, strToRemove } = options;
     let text = value;
-    if (strToRemove && strToRemove?.length > 0) {
-      strToRemove.forEach((pattern) => {
-        text = text.replaceAll(pattern, '').trim();
-      });
+    if (strToRemove) {
+      text = removeSubstrings(value, strToRemove);
     }
-
     const howManyWords =
       options.howManyWords && options.howManyWords > 0
         ? options.howManyWords

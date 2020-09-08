@@ -59,6 +59,7 @@ import {
   allowedFileNamesMSNoExt,
 } from '../services/const';
 import parse from '../services/parser';
+import ImportConf from './ImportConf';
 
 const { dialog } = remote;
 
@@ -122,6 +123,7 @@ export default function FileSelect() {
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
   );
+
   const [nextLoading, setNextLoading] = useState(false);
   let wrongFiles: FileWithError[] = [];
   let wrongFilesData: FileWithDataValidation[] = [];
@@ -643,28 +645,17 @@ export default function FileSelect() {
             )}
           </Col>
         </Row>
-        {/* {newFilesOk && newFilesStandard === 'MS' && (
+        {newFilesOk && newFilesStandard === 'MS' && (
           <>
             <Divider />
-            <Row style={{ padding: '18px 0px' }}>
-              <Checkbox
-                // checked={vulcan}
-                onChange={(e) => {
-                  setVulcan((state: boolean) => {
-                    localStorage.setItem('vulcan', JSON.stringify(!state));
-                    return !state;
-                  });
-                }}
-              >
-                <Text>
-                  Pliki pochodzą z systemu Vulcan. Zaznaczenie tej opcji
-                  powoduje rozbicie wartości w kolumnie Section Name pliku
-                  Section.csv (zalecane).
-                </Text>
-              </Checkbox>
-            </Row>
+
+            <ImportConf
+              newFilesData={newFilesData}
+              newFilesOk={newFilesOk}
+              newFilesStandard={newFilesStandard}
+            />
           </>
-        )} */}
+        )}
         {newFilesOk && showMissPassPolicy && (
           <>
             <Divider />

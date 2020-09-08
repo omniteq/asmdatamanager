@@ -47,3 +47,7 @@
 .hidden {
   display: none;
 }
+
+.selection-highlighter {
+  background-color: yellow;
+}
