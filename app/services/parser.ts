@@ -21,7 +21,8 @@ const parse: PraserFunc = (value, options) => {
       options.howManyWords && options.howManyWords > 0
         ? options.howManyWords
         : 1;
-    const words = text.split(separator);
+    const words =
+      separator.length > 0 ? text.split(separator) : text.split('$$$$$$$$$$$$');
     const pickedWords = [];
 
     if (fromRight) {

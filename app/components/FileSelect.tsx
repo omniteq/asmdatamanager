@@ -550,6 +550,10 @@ export default function FileSelect() {
       setMissingParser((state) => {
         return { ...state, subjectName: subjectParser === -1 };
       });
+    } else {
+      setMissingParser((state) => {
+        return { ...state, subjectName: false };
+      });
     }
     if (classNumberParsReq) {
       const classNumberParser = converterConfig?.parsers?.findIndex(
@@ -558,6 +562,10 @@ export default function FileSelect() {
       );
       setMissingParser((state) => {
         return { ...state, classNumber: classNumberParser === -1 };
+      });
+    } else {
+      setMissingParser((state) => {
+        return { ...state, classNumber: false };
       });
     }
   }, [converterConfig, subjectParsReq, classNumberParsReq]);

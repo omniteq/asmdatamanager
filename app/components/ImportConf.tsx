@@ -9,7 +9,7 @@ import parse, { removeSubstrings } from '../services/parser';
 import { calculateParserFuncOptions } from '../services/utils';
 import HighLighter from '../services/highlighter';
 
-const { Text, Link: LinkAnt, Paragraph } = Typography;
+const { Text, Link: LinkAnt, Paragraph, Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -101,6 +101,12 @@ export default function ImportConf(props: {
       JSON.parse(localStorage!.getItem('subjectNameStrToRemove')!)
   );
 
+  // const newFileDataOk = () => {
+  //   const lenght = newFilesData?.[sectionFileIndex]?.section?.data?.length;
+  //   const ok = lenght !== undefined ? lenght > 0 : false;
+  //   return ok;
+  // };
+
   const onChange = (e: RadioChangeEvent) => {
     setModel(e.target.value);
     localStorage.setItem('model', e.target.value);
@@ -184,12 +190,8 @@ export default function ImportConf(props: {
   useEffect(() => {
     let text = (newFilesData[sectionFileIndex]?.section
       ?.data as MsSection[])?.[1]?.[classNumberColumnName];
-    const arrayClassNumberStrToRemove = classNumberStrToRemove.split('\n');
-    if (
-      arrayClassNumberStrToRemove &&
-      arrayClassNumberStrToRemove?.length > 0 &&
-      text !== null
-    ) {
+    if (classNumberStrToRemove?.length > 0 && text !== null) {
+      const arrayClassNumberStrToRemove = classNumberStrToRemove?.split('\n');
       text = removeSubstrings(text, arrayClassNumberStrToRemove);
     }
     setClassNumberPreview(text);
@@ -198,12 +200,8 @@ export default function ImportConf(props: {
   useEffect(() => {
     let text: string | null | undefined = (newFilesData[sectionFileIndex]
       ?.section?.data as MsSection[])?.[1]?.[subjectColumnName];
-    const arraySubjectNameStrToRemove = subjectNameStrToRemove.split('\n');
-    if (
-      arraySubjectNameStrToRemove &&
-      arraySubjectNameStrToRemove?.length > 0 &&
-      text !== null
-    ) {
+    if (subjectNameStrToRemove?.length > 0 && text !== null) {
+      const arraySubjectNameStrToRemove = subjectNameStrToRemove?.split('\n');
       text = removeSubstrings(text, arraySubjectNameStrToRemove);
     }
     setSubjectNamePreview(text);
@@ -268,53 +266,66 @@ export default function ImportConf(props: {
         selectionClassNumber &&
         !classNumberSelectionInTheMiddle
       ) {
-        const { separator, firstWord, position } = calculateParserFuncOptions(
+        const {
+          separator,
+          firstWord,
+          position,
+          error,
+        } = calculateParserFuncOptions(
           selectionClassNumber,
           classNumberPreview,
-          classNumberStrToRemove.split('\n'),
+          classNumberStrToRemove?.split('\n'),
           classNumberColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[]
         );
-        config.parsers.push({
-          columnName: classNumberColumnName,
-          fileName: 'section',
-          parserFunc: (value) =>
-            parse(value, {
-              separator: separator!,
-              firstWord,
-              howManyWords: 1,
-              fromRight: position === 'right',
-              strToRemove: classNumberStrToRemove.split('\n'),
-            }),
-        });
+        if (!error) {
+          config.parsers.push({
+            columnName: classNumberColumnName,
+            fileName: 'section',
+            parserFunc: (value) =>
+              parse(value, {
+                separator: separator!,
+                firstWord: firstWord!,
+                howManyWords: 1,
+                fromRight: position === 'right',
+                strToRemove: classNumberStrToRemove?.split('\n'),
+              }),
+          });
+        }
       }
       if (
         subjectParsReq &&
         selectionSubjectName &&
         !subjectSelectionInTheMiddle
       ) {
-        const { separator, firstWord, position } = calculateParserFuncOptions(
+        const {
+          separator,
+          firstWord,
+          position,
+          error,
+        } = calculateParserFuncOptions(
           selectionSubjectName,
           subjectNamePreview,
-          subjectNameStrToRemove.split('\n'),
+          subjectNameStrToRemove?.split('\n'),
           subjectColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[],
           true
         );
-        config.parsers.push({
-          isSubject: true,
-          parserFunc: (value) =>
-            parse(value, {
-              separator,
-              firstWord,
-              howManyWords: 10,
-              fromRight: position !== 'right',
-              strToRemove: subjectNameStrToRemove.split('\n'),
-            }),
-        });
+        if (!error) {
+          config.parsers.push({
+            isSubject: true,
+            parserFunc: (value) =>
+              parse(value, {
+                separator: separator!,
+                firstWord: firstWord!,
+                howManyWords: 10,
+                fromRight: position !== 'right',
+                strToRemove: subjectNameStrToRemove?.split('\n'),
+              }),
+          });
+        }
       }
     }
-
     onConfigChange(config);
   }, [
     model,
@@ -333,23 +344,37 @@ export default function ImportConf(props: {
     year,
     subject,
   ]);
+  useEffect(() => {
+    setSubjectNamePreview(
+      (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
+        subjectColumnName
+      ]
+    );
+    setClassNumberPreview(
+      (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
+        classNumberColumnName
+      ]
+    );
+    setSelectionClassNumber(null);
+    setSelectionSubjectName(null);
+  }, [newFilesData]);
 
   return (
     <>
       <Row>
         <Col>
+          <Title level={4}>Wybierz model wdrożenia</Title>
           <Radio.Group onChange={onChange} value={model} size="large">
             <Radio style={radioStyle} value={1}>
-              <Text>Import standardowy zgodnie ze schematem importu.</Text>
+              <Text>Import standardowy - bez modyfikacji danych</Text>
             </Radio>
             <Radio style={radioStyle} value={2}>
-              Utwórz unikalne klasy np. 4a, 4b, 4c itd., powiązane ze wspólnym
-              kursem o nazwie Klasa. Zalecane w przypadku iPadów
-              współdzielonych.
+              Konsolidacja klas - ignoruj podział na zajęcia. (Zalecane w
+              przypadku wdrożenia współdzielonych iPadów)
             </Radio>
             <Radio style={radioStyle} value={3}>
-              Utwórz tyle klas ile w pliku Section.csv i jeden kurs dla każdej
-              klasy np. 4a, 4b, 4c. Zalecane w przypadku iPadów jeden na jeden.
+              Konsolidacja kursów - Zalecane w przypadku wdrożenia iPadów w
+              modelu 1:1.
             </Radio>
           </Radio.Group>
         </Col>
@@ -358,9 +383,9 @@ export default function ImportConf(props: {
         <>
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
-              <Text>
+              <Title level={4}>
                 Którego roku rozpoczyna się rok szkolny, którego dotyczy import?
-              </Text>
+              </Title>
             </Col>
           </Row>
           <Row>
@@ -395,10 +420,12 @@ export default function ImportConf(props: {
           </Row>
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
-              <Text>Gdzie zlokalizowany jest numer klasy np. 4a?</Text>
+              <Title level={4}>
+                Gdzie zlokalizowany jest numer klasy np. 4a?
+              </Title>
             </Col>
           </Row>
-          <Row style={{ padding: '18px 0px 0px' }} align="middle">
+          <Row align="middle">
             <Col>
               <Select
                 value={classNumberColumnName}
@@ -487,6 +514,7 @@ export default function ImportConf(props: {
         <>
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
+              <Title level={4}>Jak wykorzystać nazwę przedmiotu?</Title>
               <Text>
                 Możesz wskazać lokalizację nazwy przedmiotu i wykrzystać ją dla
                 lepszej organizacji klas i kursów.

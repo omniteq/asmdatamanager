@@ -58,13 +58,7 @@ export default function Home(): JSX.Element {
       folderName: event.value,
     };
     if (currentOrganization && currentOrganization.folderName !== event.value) {
-      localStorage.removeItem('oldFiles');
-      localStorage.removeItem('oldFilesData');
-      localStorage.removeItem('sftpForm');
-      localStorage.removeItem('newFiles');
-      localStorage.removeItem('newFilesData');
-      localStorage.removeItem('newFilesStandard');
-      localStorage.removeItem('newFilesOk');
+      localStorage.clear();
       clearDbAll();
     }
     setCurrentOrganization(organization);

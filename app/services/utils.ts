@@ -1,4 +1,5 @@
 import { MsSection } from 'files';
+import log from 'electron-log';
 import { SectionColumns } from '../converter';
 import { removeSubstrings } from './parser';
 
@@ -29,7 +30,7 @@ export function calculateParserFuncOptions(
   const dataShifted = [...data];
   let separator: string | null = null;
   let firstWord = 1;
-  let position: 'left' | 'right' | 'middle' | null = null;
+  let position: 'left' | 'right' | 'middle' | 'full' | null = null;
 
   if (dataShifted && Object.entries(dataShifted[0]).length < 1) {
     dataShifted.shift();
@@ -41,6 +42,11 @@ export function calculateParserFuncOptions(
     selection?.selectionEnd !== preview!.length
   )
     position = 'middle';
+  if (
+    selection?.selectionStart === 0 &&
+    selection?.selectionEnd === preview!.length
+  )
+    position = 'full';
 
   // find separator
   if (position !== null) {
@@ -52,13 +58,17 @@ export function calculateParserFuncOptions(
       case 'right':
         separator = preview![selection!.selectionStart! - 1];
         break;
-
+      case 'full':
+        separator = '';
+        break;
       default:
         break;
     }
   }
   if (separator === null || separator === undefined) {
-    throw new Error('error during separator detection');
+    console.error('error during separator detection');
+    log.error('error during separator detection');
+    return { error: `Wrong selection. Selection: ${selection.toString()}` };
   }
 
   // for middle word index find
