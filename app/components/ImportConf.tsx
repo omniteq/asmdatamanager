@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Input, Typography, Row, Select, Col, Checkbox } from 'antd';
+import {
+  Radio,
+  Input,
+  Typography,
+  Row,
+  Select,
+  Col,
+  Checkbox,
+  Divider,
+} from 'antd';
 import { FilesData, MsFile, MsSection } from 'files';
 import { RadioChangeEvent } from 'antd/lib/radio';
 import { LabeledValue } from 'antd/lib/select';
@@ -369,11 +378,11 @@ export default function ImportConf(props: {
               <Text>Import standardowy - bez modyfikacji danych</Text>
             </Radio>
             <Radio style={radioStyle} value={2}>
-              Konsolidacja klas - ignoruj podział na zajęcia. (Zalecane w
-              przypadku wdrożenia współdzielonych iPadów)
+              Konsolidacja klas - ignoruj podział na zajęcia. Zalecane w
+              przypadku wdrożenia współdzielonych iPadów.
             </Radio>
             <Radio style={radioStyle} value={3}>
-              Konsolidacja kursów - Zalecane w przypadku wdrożenia iPadów w
+              Konsolidacja kursów - zalecane w przypadku wdrożenia iPadów w
               modelu 1:1.
             </Radio>
           </Radio.Group>
@@ -381,7 +390,8 @@ export default function ImportConf(props: {
       </Row>
       {(model === 2 || model === 3) && (
         <>
-          <Row style={{ padding: '18px 0px 0px' }}>
+          <Divider />
+          <Row>
             <Col>
               <Title level={4}>
                 Którego roku rozpoczyna się rok szkolny, którego dotyczy import?
@@ -418,6 +428,7 @@ export default function ImportConf(props: {
               })}
             </Select>
           </Row>
+          <Divider />
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
               <Title level={4}>
@@ -512,6 +523,7 @@ export default function ImportConf(props: {
       )}
       {(model === 1 || model === 3) && (
         <>
+          <Divider />
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
               <Title level={4}>Jak wykorzystać nazwę przedmiotu?</Title>

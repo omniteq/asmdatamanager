@@ -579,19 +579,22 @@ export default function FileSelect() {
             <span style={{ color: '#1890ff' }}> {organization?.name}</span>
           </Title>
         </Row>
-        <Row>
-          <Text>
-            1. Upuść lub wskaż wszystkie niezbędne pliki csv. Aktualnie
-            obsługiwane formaty to{' '}
-            <LinkAnt href="https://support.apple.com/pl-pl/HT207029#fillout">
-              Apple School Manager
-            </LinkAnt>{' '}
-            oraz{' '}
-            <LinkAnt href="https://docs.microsoft.com/en-us/schooldatasync/school-data-sync-format-csv-files-for-sds">
-              Microsoft School Data Sync v1
-            </LinkAnt>
-            .
-          </Text>
+        <Row style={{ paddingTop: '12px' }}>
+          <Col>
+            <Title level={4}>Wybór plików</Title>
+            <Text>
+              Upuść lub wskaż wszystkie niezbędne pliki csv. Aktualnie
+              obsługiwane formaty to{' '}
+              <LinkAnt href="https://support.apple.com/pl-pl/HT207029#fillout">
+                Apple School Manager
+              </LinkAnt>{' '}
+              oraz{' '}
+              <LinkAnt href="https://docs.microsoft.com/en-us/schooldatasync/school-data-sync-format-csv-files-for-sds">
+                Microsoft School Data Sync v1
+              </LinkAnt>
+              .
+            </Text>
+          </Col>
         </Row>
         <Row align="top" gutter={48} style={{ padding: '18px 0px' }}>
           <Col span={16}>
@@ -693,11 +696,12 @@ export default function FileSelect() {
           <>
             <Divider />
             <Row>
-              <Text>
-                W pliku listy uczniów, istnieją rekordy, które nie posiadają
-                zdefiniowanego pola <Text code>password_policy</Text>. Jaką
-                politykę chcesz zastosować?
-              </Text>
+              <Col>
+                <Title level={4}>Polityka haseł</Title>
+                <Text>
+                  Ustaw wymagania dotyczące haseł dla kont uczniowskich.
+                </Text>
+              </Col>
             </Row>
             <Row style={{ padding: '18px 0px' }}>
               <Select
@@ -734,11 +738,14 @@ export default function FileSelect() {
         {newFilesOk && historyList.length > 0 && (
           <>
             <Row>
-              <Text>
-                Wybierz historyczną wysyłkę, z którą chcesz porównać załadowany
-                powyżej zestaw plików. To pozwoli na przegląd różnic przed
-                wysyłką.
-              </Text>
+              <Col>
+                <Title level={4}>Porównanie z wysyłką historyczną</Title>
+                <Text>
+                  Wybierz historyczną wysyłkę, z którą chcesz porównać
+                  załadowany powyżej zestaw plików. To pozwoli na przegląd
+                  różnic przed wysyłką.
+                </Text>
+              </Col>
             </Row>
             <Row style={{ padding: '18px 0px' }}>
               <Select
