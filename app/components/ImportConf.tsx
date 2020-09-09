@@ -107,38 +107,19 @@ export default function ImportConf(props: {
 
   const onChange = (e: RadioChangeEvent) => {
     setModel(e.target.value);
-    localStorage.setItem('model', e.target.value);
   };
 
   const onChangeYear = (yearValue: number) => {
-    if (yearValue === undefined) {
-      localStorage.removeItem('year');
-    } else {
-      localStorage.setItem('year', JSON.stringify(yearValue));
-    }
     setYear(yearValue);
   };
 
   const onChangeSubject = (subjectValue: LabeledValue) => {
-    if (subjectValue === undefined) {
-      localStorage.removeItem('subject');
-    } else {
-      localStorage.setItem('subject', JSON.stringify(subjectValue));
-    }
     setSubject(subjectValue);
   };
 
   const onChangeSubjectColumnName = (
     subjectColumnNameValue: SectionColumns
   ) => {
-    if (subjectColumnNameValue === undefined) {
-      localStorage.removeItem('subjectColumnName');
-    } else {
-      localStorage.setItem(
-        'subjectColumnName',
-        JSON.stringify(subjectColumnNameValue)
-      );
-    }
     setSubjectColumnName(subjectColumnNameValue);
     setSubjectNamePreview(
       (newFilesData[sectionFileIndex].section!.data as MsSection[])[1][
@@ -150,14 +131,6 @@ export default function ImportConf(props: {
   const onChangeClassNumberColumnName = (
     classNumberColumnNameValue: SectionColumns
   ) => {
-    if (classNumberColumnNameValue === undefined) {
-      localStorage.removeItem('subjectColumnName');
-    } else {
-      localStorage.setItem(
-        'classNumberColumnName',
-        JSON.stringify(classNumberColumnNameValue)
-      );
-    }
     setClassNumberColumnName(classNumberColumnNameValue);
   };
 
@@ -165,24 +138,14 @@ export default function ImportConf(props: {
     valueToRemove: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     setSelectionClassNumber(null);
-    localStorage.removeItem('selectionClassNumber');
     setClassNumberStrToRemove(valueToRemove.target.value);
-    localStorage.setItem(
-      'classNumberStrToRemove',
-      JSON.stringify(valueToRemove.target.value)
-    );
   };
 
   const onChangeSubjectNameStrToRemove = (
     valueToRemove: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     setSelectionSubjectName(null);
-    localStorage.removeItem('selectionSubjectName');
     setSubjectNameStrToRemove(valueToRemove.target.value);
-    localStorage.setItem(
-      'subjectNameStrToRemove',
-      JSON.stringify(valueToRemove.target.value)
-    );
   };
 
   useEffect(() => {
@@ -213,12 +176,10 @@ export default function ImportConf(props: {
 
   const selectionHandlerClassNumber = (selection: Selection) => {
     setSelectionClassNumber(selection);
-    localStorage.setItem('selectionClassNumber', JSON.stringify(selection));
   };
 
   const selectionHandlerSubjectName = (selection: Selection) => {
     setSelectionSubjectName(selection);
-    localStorage.setItem('selectionSubjectName', JSON.stringify(selection));
   };
 
   const subjectSelectionInTheMiddle =
@@ -446,10 +407,6 @@ export default function ImportConf(props: {
                 onChange={(e) => {
                   setClassNumberParsReq(e.target.checked);
                   onClassNumberParsReqChange(e.target.checked);
-                  localStorage.setItem(
-                    'classNumberParsReq',
-                    JSON.stringify(e.target.checked)
-                  );
                 }}
               >
                 Wymaga parsowania
@@ -572,10 +529,6 @@ export default function ImportConf(props: {
                     onChange={(e) => {
                       setSubjectParsReq(e.target.checked);
                       onSubjectParsReqChange(e.target.checked);
-                      localStorage.setItem(
-                        'subjectParsReq',
-                        JSON.stringify(e.target.checked)
-                      );
                     }}
                   >
                     Wymaga parsowania
