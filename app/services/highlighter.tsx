@@ -8,14 +8,6 @@
 /* eslint-disable react/require-default-props */
 // @ts-nocheck
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-
-const propTypes = {
-  text: PropTypes.string.isRequired,
-  customClass: PropTypes.string,
-  selectionHandler: PropTypes.func,
-  value: PropTypes.object,
-};
 
 export type Selection = {
   selection: string;
@@ -30,7 +22,7 @@ type Props = {
   text: string;
   customClass?: string;
   selectionHandler: (selection: Selection) => any;
-  value: Selection;
+  value: Selection | null;
 };
 
 /**
@@ -61,14 +53,17 @@ export default class HighLighter extends Component<Props> {
   }
 
   static getDerivedStateFromProps(props, state) {
-    return {
-      selection: props.value.selection,
-      middle: props.value.middle,
-      last: props.value.last,
-      first: props.value.first,
-      selectionStart: props.value.selectionStart,
-      selectionEnd: props.value.selectionEnd,
-    };
+    if (props.value) {
+      return {
+        selection: props.value.selection,
+        middle: props.value.middle,
+        last: props.value.last,
+        first: props.value.first,
+        selectionStart: props.value.selectionStart,
+        selectionEnd: props.value.selectionEnd,
+      };
+    }
+    return null;
   }
 
   onMouseUpHandler(e) {
@@ -164,5 +159,3 @@ export default class HighLighter extends Component<Props> {
     );
   }
 }
-
-HighLighter.propTypes = propTypes;

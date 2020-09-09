@@ -474,7 +474,7 @@ export default function ImportConf(props: {
               </Row>
               <Row align="middle">
                 <Text code style={{ fontSize: '18px' }}>
-                  {classNumberPreview && selectionClassNumber && (
+                  {classNumberPreview && (
                     <HighLighter
                       value={selectionClassNumber}
                       key={classNumberPreview}
@@ -601,7 +601,7 @@ export default function ImportConf(props: {
                   </Row>
                   <Row align="middle">
                     <Text code style={{ fontSize: '18px' }}>
-                      {subjectNamePreview && selectionSubjectName && (
+                      {subjectNamePreview && (
                         <HighLighter
                           value={selectionSubjectName}
                           key={subjectNamePreview}

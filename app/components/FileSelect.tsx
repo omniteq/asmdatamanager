@@ -117,18 +117,16 @@ export default function FileSelect() {
   );
   const [converterConfig, setConverterConfig] = useState<Options | undefined>();
   // TODO: get from ImportConf
-  const [subjectParsReq, setSubjectParsReq] = useState<boolean>();
-  const [classNumberParsReq, setClassNumberParsReq] = useState<boolean>();
+  const [subjectParsReq, setSubjectParsReq] = useState<boolean>(
+    JSON.parse(localStorage.getItem('subjectParsReq')!)
+  );
+  const [classNumberParsReq, setClassNumberParsReq] = useState<boolean>(
+    JSON.parse(localStorage.getItem('classNumberParsReq')!)
+  );
   const [missingParser, setMissingParser] = useState({
     classNumber: false,
     subjectName: false,
   });
-
-  // const [vulcan, setVulcan] = useState(
-  //   localStorage.getItem('vulcan') !== null
-  //     ? JSON.parse(localStorage!.getItem('vulcan')!)
-  //     : false
-  // );
 
   const [historyList, setHistoryList] = useState<HistoryFolder[]>(
     getHistory(organization) as HistoryFolder[]
@@ -296,7 +294,7 @@ export default function FileSelect() {
   }, []);
 
   useEffect(() => {
-    let isCancelled = false;
+    let isMounted = true;
     if (oldFiles) {
       const relativePath = path.join(
         organization.folderName,
@@ -319,8 +317,12 @@ export default function FileSelect() {
         localStorage.removeItem('oldFilesData');
       } else {
         clearDbHistorical()
-          .then(() => getFilesFromDir(relativePath))
-          .then((result) => validateFileListData(result))
+          .then(() =>
+            isMounted ? getFilesFromDir(relativePath) : Promise.reject()
+          )
+          .then((result) =>
+            isMounted ? validateFileListData(result) : Promise.reject()
+          )
           .then((data) => {
             const invalidFiles = data.filter((item) => {
               return item.result.inValidMessages.length > 0;
@@ -360,7 +362,7 @@ export default function FileSelect() {
             throw new Error('Incorrect historical files');
           })
           .then((oldDataWithHistoricalFlag) => {
-            if (!isCancelled)
+            if (isMounted)
               return importData(oldDataWithHistoricalFlag, 'APPLE', true);
             return [0];
           })
@@ -371,7 +373,7 @@ export default function FileSelect() {
       }
     }
     return () => {
-      isCancelled = true;
+      isMounted = false;
     };
   }, [oldFiles]);
 
