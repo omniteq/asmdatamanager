@@ -92,17 +92,13 @@ export default function ImportConf(props: {
       ? JSON.parse(localStorage!.getItem('year')!)
       : new Date().getFullYear()
   );
-  const [classNumberStrToRemove, setClassNumberStrToRemove] = useState<
-    string[]
-  >(
+  const [classNumberStrToRemove, setClassNumberStrToRemove] = useState<string>(
     localStorage.getItem('classNumberStrToRemove') !== null &&
-      JSON.parse(localStorage!.getItem('classNumberStrToRemove')!).split('\n')
+      JSON.parse(localStorage!.getItem('classNumberStrToRemove')!)
   );
-  const [subjectNameStrToRemove, setSubjectNameStrToRemove] = useState<
-    string[]
-  >(
+  const [subjectNameStrToRemove, setSubjectNameStrToRemove] = useState<string>(
     localStorage.getItem('subjectNameStrToRemove') !== null &&
-      JSON.parse(localStorage!.getItem('subjectNameStrToRemove')!).split('\n')
+      JSON.parse(localStorage!.getItem('subjectNameStrToRemove')!)
   );
 
   const onChange = (e: RadioChangeEvent) => {
@@ -166,7 +162,7 @@ export default function ImportConf(props: {
   ) => {
     setSelectionClassNumber(null);
     localStorage.removeItem('selectionClassNumber');
-    setClassNumberStrToRemove(valueToRemove.target.value.split('\n'));
+    setClassNumberStrToRemove(valueToRemove.target.value);
     localStorage.setItem(
       'classNumberStrToRemove',
       JSON.stringify(valueToRemove.target.value)
@@ -178,7 +174,7 @@ export default function ImportConf(props: {
   ) => {
     setSelectionSubjectName(null);
     localStorage.removeItem('selectionSubjectName');
-    setSubjectNameStrToRemove(valueToRemove.target.value.split('\n'));
+    setSubjectNameStrToRemove(valueToRemove.target.value);
     localStorage.setItem(
       'subjectNameStrToRemove',
       JSON.stringify(valueToRemove.target.value)
@@ -188,12 +184,13 @@ export default function ImportConf(props: {
   useEffect(() => {
     let text = (newFilesData[sectionFileIndex]?.section
       ?.data as MsSection[])?.[1]?.[classNumberColumnName];
+    const arrayClassNumberStrToRemove = classNumberStrToRemove.split('\n');
     if (
-      classNumberStrToRemove &&
-      classNumberStrToRemove?.length > 0 &&
+      arrayClassNumberStrToRemove &&
+      arrayClassNumberStrToRemove?.length > 0 &&
       text !== null
     ) {
-      text = removeSubstrings(text, classNumberStrToRemove);
+      text = removeSubstrings(text, arrayClassNumberStrToRemove);
     }
     setClassNumberPreview(text);
   }, [classNumberColumnName, classNumberStrToRemove]);
@@ -201,14 +198,13 @@ export default function ImportConf(props: {
   useEffect(() => {
     let text: string | null | undefined = (newFilesData[sectionFileIndex]
       ?.section?.data as MsSection[])?.[1]?.[subjectColumnName];
+    const arraySubjectNameStrToRemove = subjectNameStrToRemove.split('\n');
     if (
-      subjectNameStrToRemove &&
-      subjectNameStrToRemove?.length > 0 &&
+      arraySubjectNameStrToRemove &&
+      arraySubjectNameStrToRemove?.length > 0 &&
       text !== null
     ) {
-      subjectNameStrToRemove.forEach((pattern) => {
-        text = text?.replaceAll(pattern, '').trim();
-      });
+      text = removeSubstrings(text, arraySubjectNameStrToRemove);
     }
     setSubjectNamePreview(text);
   }, [subjectColumnName, subjectNameStrToRemove]);

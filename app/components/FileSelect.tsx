@@ -170,7 +170,10 @@ export default function FileSelect() {
     if (standard === 'MS' || standard === 'APPLE') {
       let dataToImport = data;
       if (standard === 'MS') {
-        dataToImport = new Converter(data as FilesDataMS).convertData();
+        dataToImport = new Converter(
+          data as FilesDataMS,
+          converterConfig
+        ).convertData();
       }
       if (showMissPassPolicy) {
         dataToImport = addPassPolicy(dataToImport, passPolicy) as FilesDataMS;

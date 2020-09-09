@@ -56,7 +56,7 @@ export function getOrganizations() {
         const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
         return { name: metadata.name, folderName: folder };
       } catch (error) {
-        log.error(err);
+        log.error(error);
         console.error(error);
       }
     }
@@ -100,7 +100,7 @@ export function getHistory(organization: Organization) {
           ).toLocaleString(),
         };
       } catch (error) {
-        log.error(err);
+        log.error(error);
         console.error(error);
       }
     }
@@ -287,7 +287,7 @@ export async function validateFileData(file: RcFile) {
     return { result, file };
   } catch (error) {
     console.error(error);
-    log.error(err);
+    log.error(error);
     return Promise.reject(new Error('Invalid data'));
   }
 }
