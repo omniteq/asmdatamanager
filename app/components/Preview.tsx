@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import log from 'electron-log';
 import { useHistory } from 'react-router';
 import diffArrays from 'diff-arrays-of-objects';
 import { Row, Typography, Button, Col, Tabs, Radio, Table } from 'antd';
@@ -178,7 +179,10 @@ export default function Preview() {
         setData({ diffStudents, diffClasses, diffStaff });
         return 'done';
       })
-      .catch((err: any) => console.error(err));
+      .catch((err: any) => {
+        log.error(err);
+        console.error(err);
+      });
   }, []);
 
   const onChangeChangesView = (e: RadioChangeEvent) => {

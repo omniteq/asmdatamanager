@@ -1,5 +1,6 @@
 // import sqlite3 from 'sqlite3';
 import knex from 'knex';
+import log from 'electron-log';
 
 // const db = new sqlite3.Database(':memory;');
 
@@ -174,7 +175,10 @@ instructor_id_50 TEX,
 )`
   )
   .then(() => console.log('knex done'))
-  .catch((err) => console.error(err));
+  .catch((err) => {
+    console.error(err);
+    log.error(err);
+  });
 
 // instructors in classes are optional so these had to be removed:
 // FOREIGN KEY(instructor_id) REFERENCES staff(person_id),

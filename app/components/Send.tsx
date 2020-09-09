@@ -22,6 +22,7 @@ import {
   FilesDataASM,
 } from 'files';
 import path from 'path';
+import log from 'electron-log';
 import Progress from './Progress';
 import db from '../services/db';
 import {
@@ -205,7 +206,10 @@ export default function Send() {
         setData(template as FilesDataASM);
         return true;
       })
-      .catch((err: any) => console.error(err));
+      .catch((err: any) => {
+        log.error(err);
+        console.error(err);
+      });
   }, []);
 
   return (

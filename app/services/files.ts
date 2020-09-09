@@ -6,6 +6,7 @@ import streamToBlob from 'stream-to-blob';
 import { archiveFolder } from 'zip-lib';
 import Sftp from 'ssh2-sftp-client';
 import fsExtra from 'fs-extra';
+import log from 'electron-log';
 import {
   FilesData,
   FileNamesASM,
@@ -55,6 +56,7 @@ export function getOrganizations() {
         const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
         return { name: metadata.name, folderName: folder };
       } catch (error) {
+        log.error(err);
         console.error(error);
       }
     }
@@ -98,6 +100,7 @@ export function getHistory(organization: Organization) {
           ).toLocaleString(),
         };
       } catch (error) {
+        log.error(err);
         console.error(error);
       }
     }
@@ -284,6 +287,7 @@ export async function validateFileData(file: RcFile) {
     return { result, file };
   } catch (error) {
     console.error(error);
+    log.error(err);
     return Promise.reject(new Error('Invalid data'));
   }
 }
@@ -407,7 +411,10 @@ export function getFilesFromDir(relativePath: string) {
       },
       (reason) => reason
     )
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      log.error(err);
+      console.error(err);
+    });
 }
 
 export function generateFiles(
@@ -538,6 +545,7 @@ export function preparePackage(data: FilesDataASM) {
             return true;
           },
           function (err) {
+            log.error(err);
             console.error(err);
           }
         )

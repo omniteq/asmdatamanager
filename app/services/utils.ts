@@ -21,18 +21,24 @@ export default function findObjectByProperty(
 export function calculateParserFuncOptions(
   selection: Selection,
   preview: string | null,
-  strToRemove: string[],
+  strToRemove: string[] | undefined,
   columnName: SectionColumns,
-  data: MsSection[]
+  data: MsSection[],
+  multipleWords?: boolean
 ) {
+  const dataShifted = [...data];
   let separator: string | null = null;
   let firstWord = 1;
   let position: 'left' | 'right' | 'middle' | null = null;
+
+  if (dataShifted && Object.entries(dataShifted[0]).length < 1) {
+    dataShifted.shift();
+  }
   if (selection?.selectionStart === 0) position = 'left';
-  if (selection?.selectionEnd === preview!.length - 1) position = 'right';
+  if (selection?.selectionEnd === preview!.length) position = 'right';
   if (
     selection?.selectionStart !== 0 &&
-    selection?.selectionEnd === preview!.length - 1
+    selection?.selectionEnd !== preview!.length
   )
     position = 'middle';
 
@@ -44,7 +50,7 @@ export function calculateParserFuncOptions(
         separator = preview![selection!.selectionEnd!];
         break;
       case 'right':
-        separator = preview![selection!.selectionStart!];
+        separator = preview![selection!.selectionStart! - 1];
         break;
 
       default:
@@ -56,37 +62,43 @@ export function calculateParserFuncOptions(
   }
 
   // for middle word index find
+  // BUG: cant count words from left and right based on start and end position - string can have differen length like `4a Język polski (SP14) [2019/2020]` and `4a Etyka (SP14) [2019/2020]`
   let rightWordsEqual = false;
-  let countWordsRight: number | null | undefined = null;
-  const countWordsLeft = preview
-    ?.substring(0, selection.selectionEnd)
+  let countWordsRight = preview
+    ?.substring(selection.selectionEnd + 1, preview.length)
     .split(separator).length;
 
-  const leftWordsEqual = data?.every((element) => {
+  const countWordsLeft = preview
+    ?.substring(0, selection.selectionStart - 1)
+    .split(separator).length;
+
+  const leftWordsEqual = dataShifted?.every((element) => {
     let text = element[columnName];
     if (strToRemove) {
-      text = removeSubstrings(element[columnName]!, strToRemove);
+      text = text ? removeSubstrings(element[columnName]!, strToRemove) : text;
     }
     return (
-      text?.substring(0, selection.selectionEnd).split(separator!) ===
-      countWordsLeft
+      text?.substring(0, selection.selectionStart - 1).split(separator!)
+        .length === countWordsLeft
     );
   });
 
   if (!leftWordsEqual) {
     countWordsRight = preview
-      ?.substring(selection.selectionEnd, preview.length)
+      ?.substring(selection.selectionEnd + 1, preview.length)
       .split(separator).length;
 
-    rightWordsEqual = data?.every((element) => {
+    rightWordsEqual = dataShifted?.every((element) => {
       let text = element[columnName];
       if (strToRemove) {
-        text = removeSubstrings(element[columnName]!, strToRemove);
+        text = text
+          ? removeSubstrings(element[columnName]!, strToRemove)
+          : text;
       }
       return (
         text
-          ?.substring(selection.selectionEnd, preview!.length)
-          .split(separator!) === countWordsRight
+          ?.substring(selection.selectionEnd + 1, preview!.length)
+          .split(separator!).length === countWordsRight
       );
     });
   }
@@ -109,6 +121,12 @@ export function calculateParserFuncOptions(
       default:
         break;
     }
+  }
+  if (multipleWords && position === 'right') {
+    firstWord = countWordsLeft ? countWordsLeft + 1 : 0;
+  }
+  if (multipleWords && position === 'left') {
+    firstWord = countWordsRight ? countWordsRight + 1 : 0;
   }
 
   return { separator, firstWord, position };

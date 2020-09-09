@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import log from 'electron-log';
 import path from 'path';
 import { Link, useHistory } from 'react-router-dom';
 import {
@@ -60,6 +61,7 @@ import {
 } from '../services/const';
 import parse from '../services/parser';
 import ImportConf from './ImportConf';
+import { Options } from '../converter';
 
 const { dialog } = remote;
 
@@ -109,10 +111,18 @@ export default function FileSelect() {
     localStorage.getItem('passPolicy') !== null
       ? JSON.parse(localStorage!.getItem('passPolicy')!)
       : {
-          label: 'Osiom lub więcej znakowe hasło alfanumeryczne',
+          label: 'Ośmio lub więcej znakowe hasło alfanumeryczne',
           value: '8',
         }
   );
+  const [converterConfig, setConverterConfig] = useState<Options | undefined>();
+  // TODO: get from ImportConf
+  const [subjectParsReq, setSubjectParsReq] = useState<boolean>();
+  const [classNumberParsReq, setClassNumberParsReq] = useState<boolean>();
+  const [missingParser, setMissingParser] = useState({
+    classNumber: false,
+    subjectName: false,
+  });
 
   // const [vulcan, setVulcan] = useState(
   //   localStorage.getItem('vulcan') !== null
@@ -166,6 +176,7 @@ export default function FileSelect() {
         dataToImport = addPassPolicy(dataToImport, passPolicy) as FilesDataMS;
       }
       return importToDb(dataToImport).catch((err) => {
+        log.error(err);
         console.error(err);
         let errMsg = err.message;
         if (err.message.includes('FOREIGN KEY') === true) {
@@ -359,7 +370,10 @@ export default function FileSelect() {
               return importData(oldDataWithHistoricalFlag, 'APPLE', true);
             return [0];
           })
-          .catch((err) => console.error(err));
+          .catch((err) => {
+            console.error(err);
+            log.error(err);
+          });
       }
     }
     return () => {
@@ -482,6 +496,7 @@ export default function FileSelect() {
       })
       .catch((err: any) => {
         setNextLoading(false);
+        log.error(err);
         console.error(err);
       });
   };
@@ -491,37 +506,10 @@ export default function FileSelect() {
   };
 
   const onDownloadConvertedFiles = () => {
-    const convertedData = new Converter(newFilesData as FilesDataMS, {
-      // mergeClasses: true,
-      classNumberColumnName: 'Section Name',
-      classYear: 2020,
-      // singleCourse: true,
-      // singleCourseName: 'Klasa',
-      // mergeCourses: true,
-      subjectColumnName: 'Section Name',
-      subjectDestColumnName: 'course_name',
-      parsers: [
-        {
-          columnName: 'Section Name',
-          fileName: 'section',
-          parserFunc: (value) =>
-            parse(value, {
-              separator: ' ',
-              firstWord: 1,
-            }),
-        },
-        {
-          isSubject: true,
-          parserFunc: (value) =>
-            parse(value, {
-              separator: ' ',
-              firstWord: 2,
-              howManyWords: 10,
-              strToRemove: ['(SP14) [2019/2020]'],
-            }),
-        },
-      ],
-    }).convertData();
+    const convertedData = new Converter(
+      newFilesData as FilesDataMS,
+      converterConfig
+    ).convertData();
     const folder = dialog
       .showOpenDialog({
         properties: ['openDirectory'],
@@ -534,9 +522,42 @@ export default function FileSelect() {
         }
       })
       .catch((err) => {
+        log.error(err);
         console.error(err);
       });
   };
+
+  const onConfigChange = (config: Options) => {
+    setConverterConfig(config);
+  };
+
+  const onSubjectParsReqChange = (e: boolean) => {
+    setSubjectParsReq(e);
+  };
+
+  const onClassNumberParsReqChange = (e: boolean) => {
+    setClassNumberParsReq(e);
+  };
+
+  useEffect(() => {
+    if (subjectParsReq) {
+      const subjectParser = converterConfig?.parsers?.findIndex(
+        (element) => element.isSubject === true
+      );
+      setMissingParser((state) => {
+        return { ...state, subjectName: subjectParser === -1 };
+      });
+    }
+    if (classNumberParsReq) {
+      const classNumberParser = converterConfig?.parsers?.findIndex(
+        (element) =>
+          element.isSubject === false || element.isSubject === undefined
+      );
+      setMissingParser((state) => {
+        return { ...state, classNumber: classNumberParser === -1 };
+      });
+    }
+  }, [converterConfig, subjectParsReq, classNumberParsReq]);
 
   return (
     <>
@@ -650,9 +671,10 @@ export default function FileSelect() {
             <Divider />
 
             <ImportConf
+              onClassNumberParsReqChange={onClassNumberParsReqChange}
+              onSubjectParsReqChange={onSubjectParsReqChange}
+              onConfigChange={onConfigChange}
               newFilesData={newFilesData}
-              newFilesOk={newFilesOk}
-              newFilesStandard={newFilesStandard}
             />
           </>
         )}
@@ -671,7 +693,7 @@ export default function FileSelect() {
                 labelInValue
                 defaultValue={
                   passPolicy || {
-                    label: 'Osiom lub więcej znakowe hasło alfanumeryczne',
+                    label: 'Ośmio lub więcej znakowe hasło alfanumeryczne',
                     value: '8',
                   }
                 }
@@ -681,11 +703,11 @@ export default function FileSelect() {
                 onChange={onChangePassPolicy}
               >
                 <Option
-                  label="Osiom lub więcej znakowe hasło alfanumeryczne"
+                  label="Ośmio lub więcej znakowe hasło alfanumeryczne"
                   value="8"
                   key={8}
                 >
-                  Osiom lub więcej znakowe hasło alfanumeryczne
+                  Ośmio lub więcej znakowe hasło alfanumeryczne
                 </Option>
                 <Option label="Szejściocyforwy kod" value="6" key={6}>
                   Szejściocyforwy kod
@@ -765,7 +787,11 @@ export default function FileSelect() {
                 // href="/wybor-plikow"
                 style={{ padding: '0 24px' }}
                 onClick={onClickNext}
-                disabled={!newFilesOk}
+                disabled={
+                  !newFilesOk ||
+                  missingParser.classNumber ||
+                  missingParser.subjectName
+                }
                 loading={nextLoading}
               >
                 Przejdź do podglądu

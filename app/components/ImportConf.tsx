@@ -6,6 +6,8 @@ import { LabeledValue } from 'antd/lib/select';
 import SelectionHighlighter from 'react-highlight-selection';
 import { SectionColumns, Options } from '../converter';
 import parse, { removeSubstrings } from '../services/parser';
+import { calculateParserFuncOptions } from '../services/utils';
+import HighLighter from '../services/highlighter';
 
 const { Text, Link: LinkAnt, Paragraph } = Typography;
 const { Option } = Select;
@@ -15,15 +17,28 @@ type Selection = {
   selection: string;
   selectionStart: number;
   selectionEnd: number;
+  first: string;
+  middle: string;
+  last: string;
 };
 
 export default function ImportConf(props: {
-  newFilesOk: boolean;
-  newFilesStandard: 'APPLE' | 'MS' | null | undefined;
   newFilesData: FilesData;
+  onConfigChange: (config: Options) => any;
+  onSubjectParsReqChange: (e: boolean) => any;
+  onClassNumberParsReqChange: (e: boolean) => any;
 }) {
-  const { newFilesOk, newFilesStandard, newFilesData } = props;
-  const [model, setModel] = useState(1);
+  const {
+    newFilesData,
+    onConfigChange,
+    onSubjectParsReqChange,
+    onClassNumberParsReqChange,
+  } = props;
+  const [model, setModel] = useState(
+    localStorage.getItem('model') !== null
+      ? JSON.parse(localStorage!.getItem('model')!)
+      : 1
+  );
   const [subject, setSubject] = useState<LabeledValue>(
     localStorage.getItem('subject') !== null &&
       JSON.parse(localStorage!.getItem('subject')!)
@@ -31,29 +46,68 @@ export default function ImportConf(props: {
   const [subjectColumnName, setSubjectColumnName] = useState<SectionColumns>(
     'Section Name'
   );
-  const [subjectParsReq, setSubjectParsReq] = useState(false);
-  const [classNumberParsReq, setClassNumberParsReq] = useState(false);
+  const [subjectParsReq, setSubjectParsReq] = useState(
+    localStorage.getItem('subjectParsReq') !== null
+      ? JSON.parse(localStorage!.getItem('subjectParsReq')!)
+      : false
+  );
+  const [classNumberParsReq, setClassNumberParsReq] = useState(
+    localStorage.getItem('classNumberParsReq') !== null
+      ? JSON.parse(localStorage!.getItem('classNumberParsReq')!)
+      : false
+  );
   const [classNumberColumnName, setClassNumberColumnName] = useState<
     SectionColumns
   >('Section Name');
-  const [selectionClassNumber, setSelectionClassNumber] = useState<Selection>();
-  const [selectionSubjectName, setSelectionSubjectName] = useState<Selection>();
+  const [
+    selectionClassNumber,
+    setSelectionClassNumber,
+  ] = useState<Selection | null>(
+    localStorage.getItem('selectionClassNumber') !== null &&
+      JSON.parse(localStorage!.getItem('selectionClassNumber')!)
+  );
+  const [
+    selectionSubjectName,
+    setSelectionSubjectName,
+  ] = useState<Selection | null>(
+    localStorage.getItem('selectionSubjectName') !== null &&
+      JSON.parse(localStorage!.getItem('selectionSubjectName')!)
+  );
+  const sectionFileIndex = newFilesData.findIndex((element) =>
+    Object.prototype.hasOwnProperty.call(element, 'section')
+  );
+
   const [classNumberPreview, setClassNumberPreview] = useState<string | null>(
-    null
+    (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
+      classNumberColumnName
+    ]
   );
   const [subjectNamePreview, setSubjectNamePreview] = useState<string | null>(
-    null
+    (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
+      subjectColumnName
+    ]
   );
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState(
+    localStorage.getItem('year') !== null
+      ? JSON.parse(localStorage!.getItem('year')!)
+      : new Date().getFullYear()
+  );
   const [classNumberStrToRemove, setClassNumberStrToRemove] = useState<
     string[]
-  >();
+  >(
+    localStorage.getItem('classNumberStrToRemove') !== null &&
+      JSON.parse(localStorage!.getItem('classNumberStrToRemove')!).split('\n')
+  );
   const [subjectNameStrToRemove, setSubjectNameStrToRemove] = useState<
     string[]
-  >();
+  >(
+    localStorage.getItem('subjectNameStrToRemove') !== null &&
+      JSON.parse(localStorage!.getItem('subjectNameStrToRemove')!).split('\n')
+  );
 
   const onChange = (e: RadioChangeEvent) => {
     setModel(e.target.value);
+    localStorage.setItem('model', e.target.value);
   };
 
   const onChangeYear = (yearValue: number) => {
@@ -73,10 +127,6 @@ export default function ImportConf(props: {
     }
     setSubject(subjectValue);
   };
-
-  const sectionFileIndex = newFilesData.findIndex((element) =>
-    Object.prototype.hasOwnProperty.call(element, 'section')
-  );
 
   const onChangeSubjectColumnName = (
     subjectColumnNameValue: SectionColumns
@@ -114,19 +164,30 @@ export default function ImportConf(props: {
   const onChangeClassNumberStrToRemove = (
     valueToRemove: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
+    setSelectionClassNumber(null);
+    localStorage.removeItem('selectionClassNumber');
     setClassNumberStrToRemove(valueToRemove.target.value.split('\n'));
+    localStorage.setItem(
+      'classNumberStrToRemove',
+      JSON.stringify(valueToRemove.target.value)
+    );
   };
 
   const onChangeSubjectNameStrToRemove = (
     valueToRemove: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
+    setSelectionSubjectName(null);
+    localStorage.removeItem('selectionSubjectName');
     setSubjectNameStrToRemove(valueToRemove.target.value.split('\n'));
+    localStorage.setItem(
+      'subjectNameStrToRemove',
+      JSON.stringify(valueToRemove.target.value)
+    );
   };
 
   useEffect(() => {
-    let text = (newFilesData[sectionFileIndex].section!.data as MsSection[])[1][
-      classNumberColumnName
-    ]!;
+    let text = (newFilesData[sectionFileIndex]?.section
+      ?.data as MsSection[])?.[1]?.[classNumberColumnName];
     if (
       classNumberStrToRemove &&
       classNumberStrToRemove?.length > 0 &&
@@ -138,16 +199,15 @@ export default function ImportConf(props: {
   }, [classNumberColumnName, classNumberStrToRemove]);
 
   useEffect(() => {
-    let text = (newFilesData[sectionFileIndex].section!.data as MsSection[])[1][
-      subjectColumnName
-    ]!;
+    let text: string | null | undefined = (newFilesData[sectionFileIndex]
+      ?.section?.data as MsSection[])?.[1]?.[subjectColumnName];
     if (
       subjectNameStrToRemove &&
       subjectNameStrToRemove?.length > 0 &&
       text !== null
     ) {
       subjectNameStrToRemove.forEach((pattern) => {
-        text = text.replaceAll(pattern, '').trim();
+        text = text?.replaceAll(pattern, '').trim();
       });
     }
     setSubjectNamePreview(text);
@@ -161,17 +221,32 @@ export default function ImportConf(props: {
 
   const selectionHandlerClassNumber = (selection: Selection) => {
     setSelectionClassNumber(selection);
+    localStorage.setItem('selectionClassNumber', JSON.stringify(selection));
   };
 
   const selectionHandlerSubjectName = (selection: Selection) => {
     setSelectionSubjectName(selection);
+    localStorage.setItem('selectionSubjectName', JSON.stringify(selection));
   };
 
-  // clear slection state caouse we cant restore after rerender
-  useEffect(() => {
-    setSelectionClassNumber(undefined);
-    setSelectionSubjectName(undefined);
-  }, [model, subjectParsReq, classNumberParsReq]);
+  const subjectSelectionInTheMiddle =
+    selectionSubjectName &&
+    selectionSubjectName.selectionEnd <= subjectNamePreview!.length - 1 &&
+    selectionSubjectName.selectionStart !== 0;
+
+  const classNumberSelectionInTheMiddle =
+    selectionClassNumber &&
+    selectionClassNumber.selectionEnd <= classNumberPreview!.length - 1 &&
+    selectionClassNumber.selectionStart !== 0;
+
+  // ! we can restore from localStorage, so only highlight is missing
+  // clear slection state couse we cant restore after rerender
+  // useEffect(() => {
+  //   setSelectionClassNumber(undefined);
+  // }, [model, classNumberParsReq]);
+  // useEffect(() => {
+  //   setSelectionSubjectName(undefined);
+  // }, [model, subjectParsReq]);
 
   useEffect(() => {
     const config: Options = {
@@ -182,110 +257,30 @@ export default function ImportConf(props: {
       singleCourseName: 'Klasa',
       mergeCourses: model === 3,
       subjectColumnName,
-      subjectDestColumnName: subject.value.toString() as
-        | 'course_name'
-        | 'class_number'
-        | undefined,
+      subjectDestColumnName:
+        subject &&
+        (subject.value.toString() as
+          | 'course_name'
+          | 'class_number'
+          | undefined),
     };
 
     if (classNumberParsReq || subjectParsReq) {
       config.parsers = [];
-      if (classNumberParsReq && selectionClassNumber) {
-        const selection = selectionClassNumber;
-        const preview = classNumberPreview;
-        const strToRemove = classNumberStrToRemove;
-        const columnName = classNumberColumnName;
-        const data = newFilesData[sectionFileIndex].section
-          ?.data as MsSection[];
-        let separator: string | null = null;
-        let firstWord = 1;
-        let position: 'left' | 'right' | 'middle' | null = null;
-        if (selection?.selectionStart === 0) position = 'left';
-        if (selection?.selectionEnd === preview!.length - 1) position = 'right';
-        if (
-          selection?.selectionStart !== 0 &&
-          selection?.selectionEnd === preview!.length - 1
-        )
-          position = 'middle';
-
-        // find separator
-        if (position !== null) {
-          switch (position) {
-            case 'left':
-            case 'middle':
-              separator = preview![selection!.selectionEnd!];
-              break;
-            case 'right':
-              separator = preview![selection!.selectionStart!];
-              break;
-
-            default:
-              break;
-          }
-        }
-        if (separator === null || separator === undefined) {
-          throw new Error('error during separator detection');
-        }
-
-        // for middle word index find
-        let rightWordsEqual = false;
-        let countWordsRight: number | null | undefined = null;
-        const countWordsLeft = preview
-          ?.substring(0, selection.selectionEnd)
-          .split(separator).length;
-
-        const leftWordsEqual = data?.every((element) => {
-          let text = element[columnName];
-          if (strToRemove) {
-            text = removeSubstrings(element[columnName]!, strToRemove);
-          }
-          return (
-            text?.substring(0, selection.selectionEnd).split(separator!) ===
-            countWordsLeft
-          );
-        });
-
-        if (!leftWordsEqual) {
-          countWordsRight = preview
-            ?.substring(selection.selectionEnd, preview.length)
-            .split(separator).length;
-
-          rightWordsEqual = data?.every((element) => {
-            let text = element[columnName];
-            if (strToRemove) {
-              text = removeSubstrings(element[columnName]!, strToRemove);
-            }
-            return (
-              text
-                ?.substring(selection.selectionEnd, preview!.length)
-                .split(separator!) === countWordsRight
-            );
-          });
-        }
-
-        // find word index
-        if (position !== null) {
-          switch (position) {
-            case 'left':
-              firstWord = 1;
-              break;
-            case 'middle':
-              // TODO: check in section data, from which site we have a constat number of separators
-              if (leftWordsEqual)
-                firstWord = countWordsLeft ? countWordsLeft + 1 : 1;
-              if (rightWordsEqual)
-                firstWord = countWordsRight ? countWordsRight + 1 : 1;
-              break;
-            case 'right':
-              firstWord = 1;
-              break;
-            default:
-              break;
-          }
-        }
-
+      if (
+        classNumberParsReq &&
+        selectionClassNumber &&
+        !classNumberSelectionInTheMiddle
+      ) {
+        const { separator, firstWord, position } = calculateParserFuncOptions(
+          selectionClassNumber,
+          classNumberPreview,
+          classNumberStrToRemove,
+          classNumberColumnName,
+          newFilesData[sectionFileIndex].section?.data as MsSection[]
+        );
         config.parsers.push({
-          columnName,
+          columnName: classNumberColumnName,
           fileName: 'section',
           parserFunc: (value) =>
             parse(value, {
@@ -293,80 +288,55 @@ export default function ImportConf(props: {
               firstWord,
               howManyWords: 1,
               fromRight: position === 'right',
-              strToRemove,
+              strToRemove: classNumberStrToRemove,
             }),
         });
       }
-      if (subjectParsReq && selectionSubjectName) {
-        let separator: string;
-        let subjectNamePosition: 'left' | 'right' | 'middle' | null = null;
-        if (selectionSubjectName?.selectionStart === 0)
-          subjectNamePosition = 'left';
-        if (
-          selectionSubjectName?.selectionEnd ===
-          subjectNamePreview!.length - 1
-        )
-          subjectNamePosition = 'right';
-        if (
-          selectionSubjectName?.selectionStart !== 0 &&
-          selectionSubjectName?.selectionEnd === subjectNamePreview!.length - 1
-        )
-          subjectNamePosition = 'middle';
-
-        if (subjectNamePosition !== null) {
-          switch (subjectNamePosition) {
-            case 'left':
-            case 'middle':
-              separator = subjectNamePreview![
-                selectionSubjectName!.selectionEnd!
-              ];
-              break;
-            case 'right':
-              separator = classNumberPreview![
-                selectionSubjectName!.selectionStart!
-              ];
-              break;
-
-            default:
-              break;
-          }
-        }
+      if (
+        subjectParsReq &&
+        selectionSubjectName &&
+        !subjectSelectionInTheMiddle
+      ) {
+        const { separator, firstWord, position } = calculateParserFuncOptions(
+          selectionSubjectName,
+          subjectNamePreview,
+          subjectNameStrToRemove,
+          subjectColumnName,
+          newFilesData[sectionFileIndex].section?.data as MsSection[],
+          true
+        );
         config.parsers.push({
           isSubject: true,
           parserFunc: (value) =>
             parse(value, {
               separator,
-              firstWord: 1,
+              firstWord,
               howManyWords: 10,
-              fromRight: subjectNamePosition === 'right',
+              fromRight: position !== 'right',
               strToRemove: subjectNameStrToRemove,
             }),
         });
       }
     }
 
-    // parsers: [
-    //     {
-    //       columnName: classNumberColumnName,
-    //       fileName: 'section',
-    //       parserFunc: (value) =>
-    //         parse(value, {
-    //           separator: ' ',
-    //           firstWord: 1,
-    //         }),
-    //     },
-    //     {
-    //       isSubject: true,
-    //       parserFunc: (value) =>
-    //         parse(value, {
-    //           separator: ' ',
-    //           firstWord: 2,
-    //           howManyWords: 10,
-    //           strToRemove: ['(SP14) [2019/2020]'],
-    //         }),
-    //     },
-    //   ],
-  });
+    onConfigChange(config);
+  }, [
+    model,
+    selectionSubjectName,
+    selectionClassNumber,
+    subjectNamePreview,
+    subjectNameStrToRemove,
+    subjectColumnName,
+    classNumberColumnName,
+    classNumberParsReq,
+    subjectParsReq,
+    classNumberStrToRemove,
+    classNumberPreview,
+    newFilesData,
+    sectionFileIndex,
+    year,
+    subject,
+  ]);
 
   return (
     <>
@@ -393,7 +363,7 @@ export default function ImportConf(props: {
           <Row style={{ padding: '18px 0px 0px' }}>
             <Col>
               <Text>
-                Którego roku rozpoczyna się rok szkolny, które dotyczy import?
+                Którego roku rozpoczyna się rok szkolny, którego dotyczy import?
               </Text>
             </Col>
           </Row>
@@ -459,6 +429,7 @@ export default function ImportConf(props: {
                 checked={classNumberParsReq}
                 onChange={(e) => {
                   setClassNumberParsReq(e.target.checked);
+                  onClassNumberParsReqChange(e.target.checked);
                   localStorage.setItem(
                     'classNumberParsReq',
                     JSON.stringify(e.target.checked)
@@ -475,22 +446,42 @@ export default function ImportConf(props: {
                 <Text>Fragmenty do usunięcia, oddzielone enterem:</Text>
               </Row>
               <Row>
-                <TextArea onChange={onChangeClassNumberStrToRemove} />
+                <TextArea
+                  value={classNumberStrToRemove}
+                  onChange={onChangeClassNumberStrToRemove}
+                />
               </Row>
               <Row style={{ padding: '18px 0px 0px' }}>
                 <Text>
                   W poniższym ciągu znaków, zaznacz numer klasy np. 4a:
                 </Text>
               </Row>
-              <Row>
+              <Row align="middle">
                 <Text code style={{ fontSize: '18px' }}>
-                  <SelectionHighlighter
+                  {/* <SelectionHighlighter
                     key={classNumberPreview}
+                    text={classNumberPreview}
+                    selectionHandler={selectionHandlerClassNumber}
+                    customClass="selection-highlighter"
+                  /> */}
+                  <HighLighter
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    value={
+                      selectionClassNumber !== null && selectionClassNumber
+                    }
+                    key={classNumberPreview!}
                     text={classNumberPreview}
                     selectionHandler={selectionHandlerClassNumber}
                     customClass="selection-highlighter"
                   />
                 </Text>
+                {classNumberSelectionInTheMiddle && (
+                  <Text type="danger" style={{ marginLeft: '12px' }}>
+                    Numer klasu nie może być w środku ciągu. Usuń stałe ciągi
+                    znaków.
+                  </Text>
+                )}
               </Row>
             </>
           )}
@@ -570,6 +561,7 @@ export default function ImportConf(props: {
                     checked={subjectParsReq}
                     onChange={(e) => {
                       setSubjectParsReq(e.target.checked);
+                      onSubjectParsReqChange(e.target.checked);
                       localStorage.setItem(
                         'subjectParsReq',
                         JSON.stringify(e.target.checked)
@@ -586,7 +578,10 @@ export default function ImportConf(props: {
                     <Text>Fragmenty do usunięcia, oddzielone enterem:</Text>
                   </Row>
                   <Row>
-                    <TextArea onChange={onChangeSubjectNameStrToRemove} />
+                    <TextArea
+                      value={subjectNameStrToRemove}
+                      onChange={onChangeSubjectNameStrToRemove}
+                    />
                   </Row>
                   <Row style={{ padding: '18px 0px 0px' }}>
                     <Text>
@@ -596,22 +591,30 @@ export default function ImportConf(props: {
                   </Row>
                   <Row align="middle">
                     <Text code style={{ fontSize: '18px' }}>
-                      <SelectionHighlighter
+                      {/* <SelectionHighlighter
                         key={subjectNamePreview}
+                        text={subjectNamePreview}
+                        selectionHandler={selectionHandlerSubjectName}
+                        customClass="selection-highlighter"
+                      /> */}
+                      <HighLighter
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        value={
+                          selectionSubjectName !== null && selectionSubjectName
+                        }
+                        key={subjectNamePreview!}
                         text={subjectNamePreview}
                         selectionHandler={selectionHandlerSubjectName}
                         customClass="selection-highlighter"
                       />
                     </Text>
-                    {selectionSubjectName &&
-                      selectionSubjectName.selectionEnd <=
-                        subjectNamePreview!.length - 1 &&
-                      selectionSubjectName.selectionStart !== 0 && (
-                        <Text type="danger" style={{ marginLeft: '12px' }}>
-                          Nazwa przedmiotu nie może być w środku ciągu. Usuń
-                          stałe ciągi znaków.
-                        </Text>
-                      )}
+                    {subjectSelectionInTheMiddle && (
+                      <Text type="danger" style={{ marginLeft: '12px' }}>
+                        Nazwa przedmiotu nie może być w środku ciągu. Usuń stałe
+                        ciągi znaków.
+                      </Text>
+                    )}
                   </Row>
                 </>
               )}
