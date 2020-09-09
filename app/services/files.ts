@@ -31,10 +31,31 @@ import {
   MAIN_FOLDER_PATH,
   TEMP_FOLDER_PATH,
 } from './const';
+import { SectionColumns } from '../converter';
+import { Selection } from './highlighter';
 
 export type Organization = {
   name: string;
   folderName: string;
+};
+
+type ImportConfig = {
+  model: number;
+  subject: LabeledValue;
+  subjectColumnName: SectionColumns;
+  subjectParsReq: boolean;
+  classNumberParsReq: boolean;
+  selectionClassNumber: Selection | null;
+  selectionSubjectName: Selection | null;
+  classNumberStrToRemove: string;
+  subjectNameStrToRemove: string;
+};
+
+type OrganizationMetadata = {
+  name?: string;
+  hostname?: string;
+  username?: string;
+  importConfig?: ImportConfig;
 };
 
 export default function initMainFolder() {
@@ -511,7 +532,9 @@ export function removeHistoricalProperty(data: any) {
   return dataWithoutHistory;
 }
 
-export function getOrganizationMetadata(organizationFolder: string) {
+export function getOrganizationMetadata(
+  organizationFolder: string
+): OrganizationMetadata {
   return JSON.parse(
     fs.readFileSync(
       path.join(MAIN_FOLDER_PATH, organizationFolder, 'metadata.json'),
@@ -522,11 +545,7 @@ export function getOrganizationMetadata(organizationFolder: string) {
 
 export function setOrganizationMetadata(
   organizationFolder: string,
-  data: {
-    name?: string;
-    hostname?: string;
-    username?: string;
-  }
+  data: OrganizationMetadata
 ) {
   const metadata = getOrganizationMetadata(organizationFolder);
   return fs.writeFileSync(
@@ -615,4 +634,23 @@ export function addPassPolicy(data: FilesData, passPolicy: LabeledValue) {
 export function removeFolder(dirToDelete: string) {
   const dirToRemove = path.join(MAIN_FOLDER_PATH, dirToDelete);
   fs.rmdirSync(dirToRemove, { recursive: true });
+}
+
+export function saveImportConfig(
+  organizationFolder: string,
+  config: {
+    model: number;
+    subject: LabeledValue;
+    subjectColumnName: SectionColumns;
+    subjectParsReq: boolean;
+    classNumberParsReq: boolean;
+    selectionClassNumber: Selection | null;
+    selectionSubjectName: Selection | null;
+    classNumberStrToRemove: string;
+    subjectNameStrToRemove: string;
+  }
+) {
+  const currentMetadata = getOrganizationMetadata(organizationFolder);
+  const newMetadata = { ...currentMetadata, importConfig: { ...config } };
+  setOrganizationMetadata(organizationFolder, newMetadata);
 }

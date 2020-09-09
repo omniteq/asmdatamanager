@@ -2,12 +2,7 @@ import { MsSection, FilesData, FileNamesMS, FileNamesASM } from 'files';
 import log from 'electron-log';
 import { SectionColumns } from '../converter';
 import { removeSubstrings } from './parser';
-
-type Selection = {
-  selection: string;
-  selectionStart: number;
-  selectionEnd: number;
-};
+import { Selection } from './highlighter';
 
 export default function findObjectByProperty(
   array: any[],

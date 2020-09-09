@@ -21,6 +21,11 @@ import {
 } from '../services/utils';
 import HighLighter, { Selection } from '../services/highlighter';
 import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
+import {
+  saveImportConfig,
+  Organization,
+  getOrganizationMetadata,
+} from '../services/files';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -31,14 +36,16 @@ export default function ImportConf(props: {
   onConfigChange: (config: Options) => any;
   onSubjectParsReqChange: (e: boolean) => any;
   onClassNumberParsReqChange: (e: boolean) => any;
+  organization: Organization;
 }) {
   const {
     newFilesData,
     onConfigChange,
     onSubjectParsReqChange,
     onClassNumberParsReqChange,
+    organization,
   } = props;
-  const [model, setModel] = useState(
+  const [model, setModel] = useState<number>(
     localStorage.getItem('model') !== null
       ? JSON.parse(localStorage!.getItem('model')!)
       : 1
@@ -50,12 +57,12 @@ export default function ImportConf(props: {
   const [subjectColumnName, setSubjectColumnName] = useState<SectionColumns>(
     'Section Name'
   );
-  const [subjectParsReq, setSubjectParsReq] = useState(
+  const [subjectParsReq, setSubjectParsReq] = useState<boolean>(
     localStorage.getItem('subjectParsReq') !== null
       ? JSON.parse(localStorage!.getItem('subjectParsReq')!)
       : false
   );
-  const [classNumberParsReq, setClassNumberParsReq] = useState(
+  const [classNumberParsReq, setClassNumberParsReq] = useState<boolean>(
     localStorage.getItem('classNumberParsReq') !== null
       ? JSON.parse(localStorage!.getItem('classNumberParsReq')!)
       : false
@@ -147,6 +154,90 @@ export default function ImportConf(props: {
     setSelectionSubjectName(null);
     setSubjectNameStrToRemove(valueToRemove.target.value);
   };
+
+  // update local storage
+  useEffectExceptOnMount(() => {
+    localStorage.setItem('model', JSON.stringify(model));
+    localStorage.setItem('subject', JSON.stringify(subject));
+    localStorage.setItem(
+      'subjectColumnName',
+      JSON.stringify(subjectColumnName)
+    );
+    localStorage.setItem('subjectParsReq', JSON.stringify(subjectParsReq));
+    localStorage.setItem(
+      'classNumberParsReq',
+      JSON.stringify(classNumberParsReq)
+    );
+    localStorage.setItem(
+      'selectionClassNumber',
+      JSON.stringify(selectionClassNumber)
+    );
+    localStorage.setItem(
+      'selectionSubjectName',
+      JSON.stringify(selectionSubjectName)
+    );
+    localStorage.setItem('year', JSON.stringify(year));
+    localStorage.setItem(
+      'classNumberStrToRemove',
+      JSON.stringify(classNumberStrToRemove)
+    );
+    localStorage.setItem(
+      'subjectNameStrToRemove',
+      JSON.stringify(subjectNameStrToRemove)
+    );
+
+    saveImportConfig(organization.folderName, {
+      model,
+      subject,
+      subjectColumnName,
+      subjectParsReq,
+      classNumberParsReq,
+      selectionClassNumber,
+      selectionSubjectName,
+      classNumberStrToRemove,
+      subjectNameStrToRemove,
+    });
+  }, [
+    model,
+    subject,
+    subjectColumnName,
+    subjectParsReq,
+    classNumberParsReq,
+    selectionClassNumber,
+    selectionSubjectName,
+    classNumberStrToRemove,
+    subjectNameStrToRemove,
+    organization,
+    year,
+  ]);
+
+  // restore from metadata
+  useEffect(() => {
+    const { importConfig } = getOrganizationMetadata(organization.folderName);
+
+    if (importConfig) {
+      const {
+        model: jsonModel,
+        subject: jsonSubject,
+        subjectColumnName: jsonSubjectColumnName,
+        subjectParsReq: jsonSubjectParsReq,
+        classNumberParsReq: jsonClassNumberParsReq,
+        selectionClassNumber: jsonSelectionClassNumber,
+        selectionSubjectName: jsonSelectionSubjectName,
+        classNumberStrToRemove: jsonClassNumberStrToRemove,
+        subjectNameStrToRemove: jsonSubjectNameStrToRemove,
+      } = importConfig;
+      setModel(jsonModel);
+      setSubject(jsonSubject);
+      setSubjectColumnName(jsonSubjectColumnName);
+      setSubjectParsReq(jsonSubjectParsReq);
+      setClassNumberParsReq(jsonClassNumberParsReq);
+      setSelectionClassNumber(jsonSelectionClassNumber);
+      setSelectionSubjectName(jsonSelectionSubjectName);
+      setClassNumberStrToRemove(jsonClassNumberStrToRemove);
+      setSubjectNameStrToRemove(jsonSubjectNameStrToRemove);
+    }
+  }, []);
 
   useEffect(() => {
     let text = (newFilesData[sectionFileIndex]?.section

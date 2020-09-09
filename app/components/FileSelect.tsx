@@ -682,6 +682,7 @@ export default function FileSelect() {
               onSubjectParsReqChange={onSubjectParsReqChange}
               onConfigChange={onConfigChange}
               newFilesData={newFilesData}
+              organization={organization}
             />
           </>
         )}
