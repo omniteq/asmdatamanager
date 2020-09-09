@@ -319,15 +319,6 @@ export default function FileSelect() {
         localStorage.removeItem('oldFilesData');
       } else {
         clearDbHistorical()
-          // .then(() => {
-          //   return db('locations')
-          //     .select()
-          //     .then((result) => {
-          //       console.log(result);
-          //       return false;
-          //     })
-          //     .catch((err: any) => console.error(err));
-          // })
           .then(() => getFilesFromDir(relativePath))
           .then((result) => validateFileListData(result))
           .then((data) => {

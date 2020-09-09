@@ -141,3 +141,10 @@ export function calculateParserFuncOptions(
 
   return { separator, firstWord, position };
 }
+
+export const splitString = (value: string, separator = '\n') => {
+  if (value.length > 0) {
+    return value.split(separator);
+  }
+  return undefined;
+};

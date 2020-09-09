@@ -15,8 +15,9 @@ import { LabeledValue } from 'antd/lib/select';
 import SelectionHighlighter from 'react-highlight-selection';
 import { SectionColumns, Options } from '../converter';
 import parse, { removeSubstrings } from '../services/parser';
-import { calculateParserFuncOptions } from '../services/utils';
+import { calculateParserFuncOptions, splitString } from '../services/utils';
 import HighLighter from '../services/highlighter';
+import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
 
 const { Text, Link: LinkAnt, Paragraph, Title } = Typography;
 const { Option } = Select;
@@ -110,12 +111,6 @@ export default function ImportConf(props: {
       JSON.parse(localStorage!.getItem('subjectNameStrToRemove')!)
   );
 
-  // const newFileDataOk = () => {
-  //   const lenght = newFilesData?.[sectionFileIndex]?.section?.data?.length;
-  //   const ok = lenght !== undefined ? lenght > 0 : false;
-  //   return ok;
-  // };
-
   const onChange = (e: RadioChangeEvent) => {
     setModel(e.target.value);
     localStorage.setItem('model', e.target.value);
@@ -200,7 +195,7 @@ export default function ImportConf(props: {
     let text = (newFilesData[sectionFileIndex]?.section
       ?.data as MsSection[])?.[1]?.[classNumberColumnName];
     if (classNumberStrToRemove?.length > 0 && text !== null) {
-      const arrayClassNumberStrToRemove = classNumberStrToRemove?.split('\n');
+      const arrayClassNumberStrToRemove = splitString(classNumberStrToRemove)!;
       text = removeSubstrings(text, arrayClassNumberStrToRemove);
     }
     setClassNumberPreview(text);
@@ -210,7 +205,7 @@ export default function ImportConf(props: {
     let text: string | null | undefined = (newFilesData[sectionFileIndex]
       ?.section?.data as MsSection[])?.[1]?.[subjectColumnName];
     if (subjectNameStrToRemove?.length > 0 && text !== null) {
-      const arraySubjectNameStrToRemove = subjectNameStrToRemove?.split('\n');
+      const arraySubjectNameStrToRemove = splitString(subjectNameStrToRemove)!;
       text = removeSubstrings(text, arraySubjectNameStrToRemove);
     }
     setSubjectNamePreview(text);
@@ -283,7 +278,7 @@ export default function ImportConf(props: {
         } = calculateParserFuncOptions(
           selectionClassNumber,
           classNumberPreview,
-          classNumberStrToRemove?.split('\n'),
+          splitString(classNumberStrToRemove),
           classNumberColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[]
         );
@@ -297,7 +292,7 @@ export default function ImportConf(props: {
                 firstWord: firstWord!,
                 howManyWords: 1,
                 fromRight: position === 'right',
-                strToRemove: classNumberStrToRemove?.split('\n'),
+                strToRemove: splitString(classNumberStrToRemove),
               }),
           });
         }
@@ -315,7 +310,7 @@ export default function ImportConf(props: {
         } = calculateParserFuncOptions(
           selectionSubjectName,
           subjectNamePreview,
-          subjectNameStrToRemove?.split('\n'),
+          splitString(subjectNameStrToRemove),
           subjectColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[],
           true
@@ -329,7 +324,7 @@ export default function ImportConf(props: {
                 firstWord: firstWord!,
                 howManyWords: 10,
                 fromRight: position !== 'right',
-                strToRemove: subjectNameStrToRemove?.split('\n'),
+                strToRemove: splitString(subjectNameStrToRemove),
               }),
           });
         }
@@ -353,7 +348,7 @@ export default function ImportConf(props: {
     year,
     subject,
   ]);
-  useEffect(() => {
+  useEffectExceptOnMount(() => {
     setSubjectNamePreview(
       (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
         subjectColumnName
@@ -366,6 +361,8 @@ export default function ImportConf(props: {
     );
     setSelectionClassNumber(null);
     setSelectionSubjectName(null);
+    localStorage.removeItem('selectionClassNumber');
+    localStorage.removeItem('selectionSubjectName');
   }, [newFilesData]);
 
   return (

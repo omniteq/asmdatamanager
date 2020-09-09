@@ -257,6 +257,8 @@ export function importToDb(data: FilesData) {
 }
 
 export function validateFile(file: RcFile | string) {
+  const extension =
+    typeof file === 'string' ? path.extname(file) : path.extname(file.path);
   const name =
     typeof file === 'string'
       ? path.basename(file.toLowerCase())
@@ -271,7 +273,12 @@ export function validateFile(file: RcFile | string) {
   }
 
   // validate file type
-  if (type !== 'text/csv' && type !== '.csv') {
+  // HACK: windows interpret csv as application/vnd.ms-excel
+  if (
+    !['text/csv', '.csv', 'application/vnd.ms-excel'].includes(type) ||
+    extension !== '.csv'
+  ) {
+    log.error('wrong file type: ', type, extension);
     validationErrors.push('FILETYPE');
   }
 
