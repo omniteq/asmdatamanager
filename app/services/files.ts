@@ -56,6 +56,7 @@ type OrganizationMetadata = {
   hostname?: string;
   username?: string;
   importConfig?: ImportConfig;
+  passPolicy?: LabeledValue;
 };
 
 export default function initMainFolder() {

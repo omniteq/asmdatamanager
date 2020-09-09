@@ -49,6 +49,9 @@ import {
   clearDbNew,
   generateFiles,
   addPassPolicy,
+  setOrganizationMetadata,
+  Organization,
+  getOrganizationMetadata,
 } from '../services/files';
 import Converter from '../services/converter';
 import ValidationError, {
@@ -62,6 +65,7 @@ import {
 import parse from '../services/parser';
 import ImportConf from './ImportConf';
 import { Options } from '../converter';
+import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
 
 const { dialog } = remote;
 
@@ -75,7 +79,7 @@ type NewFiles = UploadFile<any> & { path: string };
 export default function FileSelect() {
   const history = useHistory();
   const [hidden, setHidden] = useState(true);
-  const [organization, setOrganization] = useState(
+  const [organization, setOrganization] = useState<Organization>(
     JSON.parse(localStorage!.getItem('organization')!)
   );
   const [newFilesOk, setNewFilesOk] = useState<boolean>(
@@ -135,6 +139,46 @@ export default function FileSelect() {
   const [nextLoading, setNextLoading] = useState(false);
   let wrongFiles: FileWithError[] = [];
   let wrongFilesData: FileWithDataValidation[] = [];
+
+  // save local storage
+  useEffectExceptOnMount(() => {
+    localStorage.setItem('organization', JSON.stringify(organization));
+    localStorage.setItem('newFilesOk', JSON.stringify(newFilesOk));
+    localStorage.setItem('newFilesStandard', JSON.stringify(newFilesStandard));
+    localStorage.setItem('newFiles', JSON.stringify(newFiles));
+    localStorage.setItem('newFilesData', JSON.stringify(newFilesData));
+    localStorage.setItem('oldFiles', JSON.stringify(oldFiles));
+    localStorage.setItem('oldFilesData', JSON.stringify(oldFilesData));
+    localStorage.setItem('passPolicy', JSON.stringify(passPolicy));
+    localStorage.setItem('subjectParsReq', JSON.stringify(subjectParsReq));
+    localStorage.setItem(
+      'classNumberParsReq',
+      JSON.stringify(classNumberParsReq)
+    );
+
+    setOrganizationMetadata(organization.folderName, {
+      passPolicy,
+    });
+  }, [
+    organization,
+    newFilesOk,
+    newFilesStandard,
+    newFiles,
+    newFilesData,
+    oldFiles,
+    oldFilesData,
+    passPolicy,
+    subjectParsReq,
+    classNumberParsReq,
+  ]);
+
+  // restore from metadata
+  useEffect(() => {
+    const { passPolicy: jsonPassPolicy } = getOrganizationMetadata(
+      organization.folderName
+    );
+    if (jsonPassPolicy) setPassPolicy(jsonPassPolicy);
+  }, []);
 
   const displayErros = (
     wrongFilesDis?: FileWithError[],
@@ -270,14 +314,10 @@ export default function FileSelect() {
       : areArraysEqualSets(files, allowedFileNamesMSNoExt) && 'MS';
     if (filesStandard === 'APPLE' || filesStandard === 'MS') {
       setNewFilesOk(true);
-      localStorage.setItem('newFilesOk', JSON.stringify(true));
       setNewFilesStandard(filesStandard);
-      localStorage.setItem('newFilesStandard', JSON.stringify(filesStandard));
     } else {
       setNewFilesOk(false);
       setNewFilesStandard(null);
-      localStorage.setItem('newFilesOk', JSON.stringify(false));
-      localStorage.setItem('newFilesStandard', JSON.stringify(false));
     }
   };
 
@@ -289,7 +329,6 @@ export default function FileSelect() {
         value: historyList[0].folderName,
       };
       setOldFiles(value);
-      localStorage.setItem('oldFiles', JSON.stringify(value));
     }
   }, []);
 
@@ -353,10 +392,6 @@ export default function FileSelect() {
                 return item;
               });
               setOldFilesData(oldDataWithHistoricalFlag);
-              localStorage.setItem(
-                'oldFilesData',
-                JSON.stringify(oldDataWithHistoricalFlag)
-              );
               return oldDataWithHistoricalFlag;
             }
             throw new Error('Incorrect historical files');
@@ -434,12 +469,7 @@ export default function FileSelect() {
       } else if (status === 'error') {
         message.error(`${info.file.name} plik nie może być załadowany.`);
       }
-      localStorage.setItem(
-        'newFiles',
-        JSON.stringify(fileListWithPaths.slice(-6))
-      );
       setNewFiles(fileListWithPaths.slice(-6));
-      localStorage.setItem('newFilesData', JSON.stringify(newFilesData));
 
       if (info.fileList[info.fileList.length - 1].uid === info.file.uid) {
         if (newFilesData.length === 6) {
@@ -459,19 +489,14 @@ export default function FileSelect() {
     );
     setNewFilesData(newFilesDataFiltered);
     setNewFiles(newFilesFiltered);
-    localStorage.setItem('newFiles', JSON.stringify(newFilesFiltered));
-    localStorage.setItem('newFilesData', JSON.stringify(newFilesDataFiltered));
-    localStorage.setItem('newFilesOk', JSON.stringify(false));
     setNewFilesOk(false);
   };
 
   const onChangeOldFiles = (value: LabeledValue) => {
-    localStorage.setItem('oldFiles', JSON.stringify(value));
     setOldFiles(value);
   };
 
   const onChangePassPolicy = (value: LabeledValue) => {
-    localStorage.setItem('passPolicy', JSON.stringify(value));
     setPassPolicy(value);
   };
 
