@@ -9,28 +9,22 @@ import {
   Checkbox,
   Divider,
 } from 'antd';
-import { FilesData, MsFile, MsSection } from 'files';
+import { FilesData, MsSection } from 'files';
 import { RadioChangeEvent } from 'antd/lib/radio';
 import { LabeledValue } from 'antd/lib/select';
-import SelectionHighlighter from 'react-highlight-selection';
 import { SectionColumns, Options } from '../converter';
 import parse, { removeSubstrings } from '../services/parser';
-import { calculateParserFuncOptions, splitString } from '../services/utils';
-import HighLighter from '../services/highlighter';
+import {
+  calculateParserFuncOptions,
+  splitString,
+  sectionDataExists,
+} from '../services/utils';
+import HighLighter, { Selection } from '../services/highlighter';
 import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
 
-const { Text, Link: LinkAnt, Paragraph, Title } = Typography;
+const { Text, Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
-
-type Selection = {
-  selection: string;
-  selectionStart: number;
-  selectionEnd: number;
-  first: string;
-  middle: string;
-  last: string;
-};
 
 export default function ImportConf(props: {
   newFilesData: FilesData;
@@ -237,15 +231,6 @@ export default function ImportConf(props: {
     selectionClassNumber.selectionEnd <= classNumberPreview!.length - 1 &&
     selectionClassNumber.selectionStart !== 0;
 
-  // ! we can restore from localStorage, so only highlight is missing
-  // clear slection state couse we cant restore after rerender
-  // useEffect(() => {
-  //   setSelectionClassNumber(undefined);
-  // }, [model, classNumberParsReq]);
-  // useEffect(() => {
-  //   setSelectionSubjectName(undefined);
-  // }, [model, subjectParsReq]);
-
   useEffect(() => {
     const config: Options = {
       mergeClasses: model === 2,
@@ -385,7 +370,7 @@ export default function ImportConf(props: {
           </Radio.Group>
         </Col>
       </Row>
-      {(model === 2 || model === 3) && (
+      {(model === 2 || model === 3) && sectionDataExists(newFilesData) && (
         <>
           <Divider />
           <Row>
@@ -489,23 +474,15 @@ export default function ImportConf(props: {
               </Row>
               <Row align="middle">
                 <Text code style={{ fontSize: '18px' }}>
-                  {/* <SelectionHighlighter
-                    key={classNumberPreview}
-                    text={classNumberPreview}
-                    selectionHandler={selectionHandlerClassNumber}
-                    customClass="selection-highlighter"
-                  /> */}
-                  <HighLighter
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    value={
-                      selectionClassNumber !== null && selectionClassNumber
-                    }
-                    key={classNumberPreview!}
-                    text={classNumberPreview}
-                    selectionHandler={selectionHandlerClassNumber}
-                    customClass="selection-highlighter"
-                  />
+                  {classNumberPreview && selectionClassNumber && (
+                    <HighLighter
+                      value={selectionClassNumber}
+                      key={classNumberPreview}
+                      text={classNumberPreview}
+                      selectionHandler={selectionHandlerClassNumber}
+                      customClass="selection-highlighter"
+                    />
+                  )}
                 </Text>
                 {classNumberSelectionInTheMiddle && (
                   <Text type="danger" style={{ marginLeft: '12px' }}>
@@ -624,23 +601,15 @@ export default function ImportConf(props: {
                   </Row>
                   <Row align="middle">
                     <Text code style={{ fontSize: '18px' }}>
-                      {/* <SelectionHighlighter
-                        key={subjectNamePreview}
-                        text={subjectNamePreview}
-                        selectionHandler={selectionHandlerSubjectName}
-                        customClass="selection-highlighter"
-                      /> */}
-                      <HighLighter
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        value={
-                          selectionSubjectName !== null && selectionSubjectName
-                        }
-                        key={subjectNamePreview!}
-                        text={subjectNamePreview}
-                        selectionHandler={selectionHandlerSubjectName}
-                        customClass="selection-highlighter"
-                      />
+                      {subjectNamePreview && selectionSubjectName && (
+                        <HighLighter
+                          value={selectionSubjectName}
+                          key={subjectNamePreview}
+                          text={subjectNamePreview}
+                          selectionHandler={selectionHandlerSubjectName}
+                          customClass="selection-highlighter"
+                        />
+                      )}
                     </Text>
                     {subjectSelectionInTheMiddle && (
                       <Text type="danger" style={{ marginLeft: '12px' }}>

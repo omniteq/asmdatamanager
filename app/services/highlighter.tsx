@@ -17,6 +17,22 @@ const propTypes = {
   value: PropTypes.object,
 };
 
+export type Selection = {
+  selection: string;
+  selectionStart: number;
+  selectionEnd: number;
+  first: string;
+  middle: string;
+  last: string;
+};
+
+type Props = {
+  text: string;
+  customClass?: string;
+  selectionHandler: (selection: Selection) => any;
+  value: Selection;
+};
+
 /**
  * Highlighter component.
  *
@@ -26,7 +42,7 @@ const propTypes = {
  * - selection start index
  * - selection end index
  */
-export default class HighLighter extends Component {
+export default class HighLighter extends Component<Props> {
   constructor(props) {
     super(props);
     this.state = {

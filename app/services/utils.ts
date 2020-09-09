@@ -1,4 +1,4 @@
-import { MsSection } from 'files';
+import { MsSection, FilesData, FileNamesMS, FileNamesASM } from 'files';
 import log from 'electron-log';
 import { SectionColumns } from '../converter';
 import { removeSubstrings } from './parser';
@@ -148,3 +148,12 @@ export const splitString = (value: string, separator = '\n') => {
   }
   return undefined;
 };
+
+export function sectionDataExists(data: FilesData) {
+  const fileName = 'section';
+  const index = data.findIndex((element) =>
+    Object.prototype.hasOwnProperty.call(element, fileName)
+  );
+  const exists = data?.[index]?.[fileName]?.data;
+  return exists;
+}
