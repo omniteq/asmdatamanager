@@ -271,7 +271,7 @@ export default function ImportConf(props: {
         const { separator, firstWord, position } = calculateParserFuncOptions(
           selectionClassNumber,
           classNumberPreview,
-          classNumberStrToRemove,
+          classNumberStrToRemove.split('\n'),
           classNumberColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[]
         );
@@ -284,7 +284,7 @@ export default function ImportConf(props: {
               firstWord,
               howManyWords: 1,
               fromRight: position === 'right',
-              strToRemove: classNumberStrToRemove,
+              strToRemove: classNumberStrToRemove.split('\n'),
             }),
         });
       }
@@ -296,7 +296,7 @@ export default function ImportConf(props: {
         const { separator, firstWord, position } = calculateParserFuncOptions(
           selectionSubjectName,
           subjectNamePreview,
-          subjectNameStrToRemove,
+          subjectNameStrToRemove.split('\n'),
           subjectColumnName,
           newFilesData[sectionFileIndex].section?.data as MsSection[],
           true
@@ -309,7 +309,7 @@ export default function ImportConf(props: {
               firstWord,
               howManyWords: 10,
               fromRight: position !== 'right',
-              strToRemove: subjectNameStrToRemove,
+              strToRemove: subjectNameStrToRemove.split('\n'),
             }),
         });
       }
