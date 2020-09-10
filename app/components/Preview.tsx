@@ -96,11 +96,6 @@ export default function Preview() {
     width: window.innerWidth,
   });
 
-  const oldFilesString = localStorage.getItem('oldFiles');
-  let label;
-  if (oldFilesString) {
-    label = JSON.parse(localStorage.getItem('oldFiles')!).label;
-  }
   const onClickBack = () => {
     history.push('/wybor-plikow');
   };
