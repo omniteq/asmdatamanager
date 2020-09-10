@@ -174,10 +174,14 @@ export default function FileSelect() {
 
   // restore from metadata
   useEffect(() => {
+    let isMounted = true;
     const { passPolicy: jsonPassPolicy } = getOrganizationMetadata(
       organization.folderName
     );
-    if (jsonPassPolicy) setPassPolicy(jsonPassPolicy);
+    if (jsonPassPolicy && isMounted) setPassPolicy(jsonPassPolicy);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const displayErros = (
@@ -366,7 +370,7 @@ export default function FileSelect() {
             const invalidFiles = data.filter((item) => {
               return item.result.inValidMessages.length > 0;
             });
-            if (invalidFiles.length > 0)
+            if (invalidFiles.length > 0 && isMounted)
               displayErros(
                 undefined,
                 invalidFiles,
@@ -377,7 +381,7 @@ export default function FileSelect() {
             wysyłkę, ale nie mogą one zostać użyte do porównania."
                 />
               );
-            if (invalidFiles.length < 1) {
+            if (invalidFiles.length < 1 && isMounted) {
               const oldData = data.map((item) => {
                 return {
                   [path.parse(item.file.name).name]: item.result,

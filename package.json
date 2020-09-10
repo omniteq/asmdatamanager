@@ -1,7 +1,7 @@
 {
   "name": "asm-data-manager",
   "productName": "ASM Data Manager",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "This app allows easy conversion of data from Microsoft School Data Sync to Apple School Manager. Apart from that, it validates files, displays friendly preview, uploads the zip to SFTP, and archive files in a structured manner.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
