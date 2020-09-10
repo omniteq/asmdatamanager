@@ -125,6 +125,7 @@ export default function Preview() {
   });
 
   useEffect(() => {
+    let isMounted = true;
     const newData: any[] = [];
     const historicalData: any[] = [];
     getPreviewNewStudents()
@@ -171,13 +172,16 @@ export default function Preview() {
           newData[2],
           'person_id'
         );
-        setData({ diffStudents, diffClasses, diffStaff });
+        if (isMounted) setData({ diffStudents, diffClasses, diffStaff });
         return 'done';
       })
       .catch((err: any) => {
         log.error(err);
         console.error(err);
       });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const onChangeChangesView = (e: RadioChangeEvent) => {
