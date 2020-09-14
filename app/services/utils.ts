@@ -1,4 +1,10 @@
-import { MsSection, FilesData, FileNamesMS, FileNamesASM } from 'files';
+import {
+  MsSection,
+  FilesData,
+  FileNamesMS,
+  FileNamesASM,
+  AsmClass,
+} from 'files';
 import log from 'electron-log';
 import { SectionColumns } from '../converter';
 import { removeSubstrings } from './parser';

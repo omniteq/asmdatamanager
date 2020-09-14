@@ -35,6 +35,7 @@ import {
 } from '../services/files';
 import { TEMP_FOLDER_PATH } from '../services/const';
 import ValidationError from './ValidationError';
+import { removeEmptyColumns } from '../services/converter';
 
 const { Text, Title, Link: LinkAnt, Paragraph } = Typography;
 
@@ -172,37 +173,8 @@ export default function Send() {
       .then((result) => {
         template[5].rosters!.data = removeHistoricalProperty(result);
 
-        // remove unnecessary instructor fields
-        let maxInstructor: number;
-        for (let i = 4; i < 51; i += 1) {
-          const nthValues = template[4].classes?.data.filter((item) => {
-            return (
-              item[`instructor_id_${i.toString()}`] &&
-              item[`instructor_id_${i.toString()}`]
-            );
-          });
-          if (nthValues && nthValues.length < 1) {
-            maxInstructor = i - 1;
-            break;
-          }
-        }
-        template[4].classes?.data.forEach((item) => {
-          for (let i = maxInstructor + 1; i < 51; i += 1) {
-            delete item[`instructor_id_${i.toString()}`];
-          }
-        });
-
-        // wrong method
-        // template[4].classes?.data.forEach((item) => {
-        //   Object.keys(item).forEach((key) => {
-        //     if (
-        //       key.includes('instructor_id_') &&
-        //       (item[key] === null || item[key]!.length < 1)
-        //     ) {
-        //       delete item[key];
-        //     }
-        //   });
-        // });
+        // remove unnecessary instructor field
+        removeEmptyColumns(template[4].classes!.data!, 'instructor_id_');
 
         setData(template as FilesDataASM);
         return true;

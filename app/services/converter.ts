@@ -24,27 +24,31 @@ function generateProperties(
   name: string,
   rangeFrom: number,
   rangeTo: number,
-  valueParam: { indexModificator: number; arg?: any },
-  getValueFunction: (arg: any, index: number) => any
+  valueParam?: { indexModificator: number; arg?: any },
+  getValueFunction?: (arg: any, index: number) => any
 ) {
   const object: any = {};
   for (let i = rangeFrom; i < rangeTo + 1; i += 1) {
-    object[name + i] = getValueFunction(
-      valueParam.arg,
-      i + valueParam.indexModificator
-    );
+    if (valueParam && getValueFunction) {
+      object[name + i] = getValueFunction(
+        valueParam.arg,
+        i + valueParam.indexModificator
+      );
+    } else {
+      object[name + i] = null;
+    }
   }
   return object;
 }
 
-function removeEmptyColumns(array: any[], fieldNamePattern: string) {
+export function removeEmptyColumns(array: any[], fieldNamePattern: string) {
   // remove unnecessary instructor fields
   let maxInstructor: number;
   for (let i = 4; i < 51; i += 1) {
     const nthValues = array.filter((item) => {
       return (
         item[`${fieldNamePattern}${i.toString()}`] &&
-        item[`${fieldNamePattern}${i.toString()}`]!.length > 0
+        item[`${fieldNamePattern}${i.toString()}`]
       );
     });
     if (nthValues && nthValues.length < 1) {
@@ -490,7 +494,6 @@ export default class Converter {
             classIndex =
               this._templateClasses.push({
                 class_id: classId,
-                location_id: row['School SIS ID'],
                 class_number: classNumber || row[classNumberColumnName],
                 course_id:
                   (this.options?.singleCourse && row['School SIS ID']) ||
@@ -499,6 +502,9 @@ export default class Converter {
                   i === 0
                     ? row['Course SIS ID']
                     : (1000 + i).toString()),
+                instructor_id: null,
+                ...generateProperties('instructor_id_', 2, 50),
+                location_id: row['School SIS ID'],
               }) - 1;
           }
 
@@ -535,7 +541,7 @@ export default class Converter {
                 );
               });
               const instructorsCount = classesEntries.filter((pair) => {
-                return pair[0].includes('instructor_id');
+                return pair[0].includes('instructor_id') && pair[1] !== null;
               }).length;
 
               // if not, add id to the first empty instructor_id_x field
