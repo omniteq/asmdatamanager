@@ -641,7 +641,7 @@ export function saveImportConfig(
   organizationFolder: string,
   config: {
     model: number;
-    subject: LabeledValue;
+    subject?: LabeledValue;
     subjectColumnName: SectionColumns;
     subjectParsReq: boolean;
     classNumberParsReq: boolean;

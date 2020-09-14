@@ -152,3 +152,11 @@ export function sectionDataExists(data: FilesData) {
   const exists = data?.[index]?.[fileName]?.data;
   return exists;
 }
+
+export function getLocalStorage(name: string) {
+  const key = localStorage.getItem(name);
+  if (key !== null && key !== 'undefined') {
+    JSON.parse(key);
+  }
+  return undefined;
+}

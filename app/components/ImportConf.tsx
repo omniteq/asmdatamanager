@@ -18,6 +18,7 @@ import {
   calculateParserFuncOptions,
   splitString,
   sectionDataExists,
+  getLocalStorage,
 } from '../services/utils';
 import HighLighter, { Selection } from '../services/highlighter';
 import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
@@ -50,9 +51,8 @@ export default function ImportConf(props: {
       ? JSON.parse(localStorage!.getItem('model')!)
       : 1
   );
-  const [subject, setSubject] = useState<LabeledValue>(
-    localStorage.getItem('subject') !== null &&
-      JSON.parse(localStorage!.getItem('subject')!)
+  const [subject, setSubject] = useState<LabeledValue | undefined>(
+    getLocalStorage('subject')
   );
   const [subjectColumnName, setSubjectColumnName] = useState<SectionColumns>(
     'Section Name'
@@ -560,7 +560,7 @@ export default function ImportConf(props: {
               <Select
                 allowClear
                 labelInValue
-                defaultValue={subject}
+                defaultValue={subject !== null ? subject : undefined}
                 size="large"
                 style={{ width: '50%', minWidth: '400px' }}
                 placeholder="Zastosowanie nazwy przedmiotu"

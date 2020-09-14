@@ -396,63 +396,64 @@ export default class Converter {
   }
 
   private _buildClasses() {
-    let subjectColumnName: SectionColumns;
-    let subjectDestColumnName: 'class_number' | 'course_name';
-    let subjectParser: Parser | undefined;
-    let classColumnName: SectionColumns;
-    if (
-      this.options &&
-      this.options.subjectColumnName &&
-      this.options.subjectDestColumnName &&
-      this.options.classNumberColumnName
-    ) {
-      subjectColumnName = this.options.subjectColumnName;
-      subjectDestColumnName = this.options.subjectDestColumnName;
-      subjectParser = this.options.parsers?.find(
-        (parser) => parser.isSubject === true
-      );
-      classColumnName = this.options.classNumberColumnName;
-      const classNumberParser = this._getClassNumberParser();
-      this._Section.forEach((x, i) => {
-        const row = x as MsSection;
-        if (Object.entries(row).length === 0) {
-          this._templateClasses.push({} as AsmClass);
-        } else {
-          let classNumber = row['Section Number'] ? row['Section Number'] : '';
+    // if (
+    //   this.options &&
+    //   this.options.subjectColumnName &&
+    //   this.options.subjectDestColumnName &&
+    //   this.options.classNumberColumnName
+    // ) {
+    const subjectColumnName: SectionColumns | undefined = this.options
+      ?.subjectColumnName;
+    const subjectDestColumnName:
+      | 'class_number'
+      | 'course_name'
+      | undefined = this.options?.subjectDestColumnName;
+    const subjectParser: Parser | undefined = this.options?.parsers?.find(
+      (parser) => parser.isSubject === true
+    );
+    const classColumnName: SectionColumns | undefined = this.options
+      ?.classNumberColumnName;
+    const classNumberParser = this._getClassNumberParser();
+    this._Section.forEach((x, i) => {
+      const row = x as MsSection;
+      if (Object.entries(row).length === 0) {
+        this._templateClasses.push({} as AsmClass);
+      } else {
+        let classNumber = row['Section Number'] ? row['Section Number'] : '';
 
-          if (subjectDestColumnName === 'class_number') {
-            classNumber = subjectParser
-              ? subjectParser?.parserFunc(row[subjectColumnName])
-              : row[subjectColumnName] || '';
-          }
-          if (subjectDestColumnName === 'course_name') {
-            classNumber = classNumberParser
-              ? classNumberParser?.parserFunc(row[classColumnName])
-              : row[classColumnName] || '';
-          }
-
-          this._templateClasses.push({
-            class_id: row['SIS ID'] ? row['SIS ID'] : '',
-            class_number: classNumber,
-            course_id:
-              (row['Course SIS ID'] !== undefined &&
-                row['Course SIS ID']!.length > 0) ||
-              i === 0
-                ? row['Course SIS ID']
-                : (1000 + i).toString(),
-            instructor_id: this._getInstructorSisId(row['SIS ID'], 0),
-            ...generateProperties(
-              'instructor_id_',
-              2,
-              50,
-              { indexModificator: -1, arg: row['SIS ID'] },
-              this._getInstructorSisId
-            ),
-            location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
-          });
+        if (subjectDestColumnName === 'class_number' && subjectColumnName) {
+          classNumber = subjectParser
+            ? subjectParser?.parserFunc(row[subjectColumnName])
+            : row[subjectColumnName] || '';
         }
-      });
-    }
+        if (subjectDestColumnName === 'course_name' && classColumnName) {
+          classNumber = classNumberParser
+            ? classNumberParser?.parserFunc(row[classColumnName])
+            : row[classColumnName] || '';
+        }
+
+        this._templateClasses.push({
+          class_id: row['SIS ID'] ? row['SIS ID'] : '',
+          class_number: classNumber,
+          course_id:
+            (row['Course SIS ID'] !== undefined &&
+              row['Course SIS ID']!.length > 0) ||
+            i === 0
+              ? row['Course SIS ID']
+              : (1000 + i).toString(),
+          instructor_id: this._getInstructorSisId(row['SIS ID'], 0),
+          ...generateProperties(
+            'instructor_id_',
+            2,
+            50,
+            { indexModificator: -1, arg: row['SIS ID'] },
+            this._getInstructorSisId
+          ),
+          location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
+        });
+      }
+    });
+    // }
   }
 
   private _buildMargedClasses() {
