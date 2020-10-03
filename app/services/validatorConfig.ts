@@ -1,3 +1,5 @@
+import { FkValidationSchema } from './fkValidator';
+
 function requiredError(
   headerName: string,
   rowNumber: string,
@@ -501,6 +503,156 @@ const asmClasses = {
       ...optionalColumnOptionalDataConstrains(256),
     },
     {
+      name: 'instructor_id_51',
+      inputName: 'instructor_id_51',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_52',
+      inputName: 'instructor_id_52',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_53',
+      inputName: 'instructor_id_53',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_54',
+      inputName: 'instructor_id_54',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_55',
+      inputName: 'instructor_id_55',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_26',
+      inputName: 'instructor_id_26',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_57',
+      inputName: 'instructor_id_57',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_58',
+      inputName: 'instructor_id_58',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_59',
+      inputName: 'instructor_id_59',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_60',
+      inputName: 'instructor_id_60',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_61',
+      inputName: 'instructor_id_61',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_62',
+      inputName: 'instructor_id_62',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_63',
+      inputName: 'instructor_id_63',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_64',
+      inputName: 'instructor_id_64',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_65',
+      inputName: 'instructor_id_65',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_66',
+      inputName: 'instructor_id_66',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_67',
+      inputName: 'instructor_id_67',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_68',
+      inputName: 'instructor_id_68',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_69',
+      inputName: 'instructor_id_69',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_70',
+      inputName: 'instructor_id_70',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_71',
+      inputName: 'instructor_id_71',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_72',
+      inputName: 'instructor_id_72',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_73',
+      inputName: 'instructor_id_73',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_74',
+      inputName: 'instructor_id_74',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_75',
+      inputName: 'instructor_id_75',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_76',
+      inputName: 'instructor_id_76',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_77',
+      inputName: 'instructor_id_77',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_78',
+      inputName: 'instructor_id_78',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_79',
+      inputName: 'instructor_id_79',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_80',
+      inputName: 'instructor_id_80',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
       name: 'location_id',
       inputName: 'location_id',
       ...fkConstrains,
@@ -600,7 +752,7 @@ const msTeacher = {
     {
       name: 'SIS ID',
       inputName: 'SIS ID',
-      ...pkConstrains,
+      ...requiredConstrains(256),
     },
     {
       name: 'School SIS ID',
@@ -724,6 +876,46 @@ const msTeacherRoster = {
       headerError,
       validate: validate.bind(256),
       validateError,
+    },
+  ],
+};
+
+/* --- Foregin Key Validation --- */
+
+export const fkValidationSchemaMs: FkValidationSchema = {
+  student: [
+    {
+      fk: 'School SIS ID',
+      fileName: 'school',
+      pk: 'SIS ID',
+    },
+  ],
+  section: [
+    {
+      fk: 'School SIS ID',
+      fileName: 'school',
+      pk: 'SIS ID',
+    },
+  ],
+  studentenrollment: [
+    {
+      fk: 'SIS ID',
+      fileName: 'student',
+      pk: 'SIS ID',
+    },
+  ],
+  teacher: [
+    {
+      fk: 'School SIS ID',
+      fileName: 'school',
+      pk: 'SIS ID',
+    },
+  ],
+  teacherroster: [
+    {
+      fk: 'SIS ID',
+      fileName: 'teacher',
+      pk: 'SIS ID',
     },
   ],
 };

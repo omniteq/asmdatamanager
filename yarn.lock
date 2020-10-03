@@ -5054,7 +5054,7 @@ csv-parse@^4.12.0, csv-parse@^4.8.8:
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.12.0.tgz#fd42d6291bbaadd51d3009f6cadbb3e53b4ce026"
   integrity sha512-wPQl3H79vWLPI8cgKFcQXl0NBgYYEqVnT1i6/So7OjMpsI540oD7p93r3w6fDSyPvwkTepG05F69/7AViX2lXg==
 
-csv-stringify@^5.3.6:
+csv-stringify@^5.3.6, csv-stringify@^5.5.1:
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.5.1.tgz#f42cdd379b0f7f142933a11f674b1a91ebd0fcd0"
   integrity sha512-HM0/86Ks8OwFbaYLd495tqTs1NhscZL52dC4ieKYumy8+nawQYC0xZ63w1NqLf0M148T2YLYqowoImc1giPn0g==
@@ -14336,11 +14336,6 @@ unique-filename@^1.1.1:
   integrity sha512-Vmp0jIp2ln35UTXuryvjzkjGdRyf9b2lTXuSYUiPmzRcl3FDtYqAwOnTJkAngD9SWhnoJzDbTKwaOrZ+STtxNQ==
   dependencies:
     unique-slug "^2.0.0"
-
-unique-objects@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/unique-objects/-/unique-objects-1.0.5.tgz#adf819d97b0bc7ff8f2f2c007adf0b3372055d66"
-  integrity sha512-LzSSM2fsUBQbgD6qspBnKHe3+PjhLy22XMzJtpk4TPZJkwUXU1rQS3cyLnvDU6nXDe2pA8dL2WjT5yG7de1n6Q==
 
 unique-slug@^2.0.0:
   version "2.0.2"

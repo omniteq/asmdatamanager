@@ -7,6 +7,8 @@ import { archiveFolder } from 'zip-lib';
 import Sftp from 'ssh2-sftp-client';
 import fsExtra from 'fs-extra';
 import log from 'electron-log';
+import parseCsv from 'csv-parse/lib/sync';
+import stringifyCsv from 'csv-stringify';
 import {
   FilesData,
   FileNamesASM,
@@ -16,7 +18,6 @@ import {
   HistoryFolder,
   AsmFile,
 } from 'files';
-// import parse from 'csv-parse/lib/sync';
 // import { AsmFile } from 'files';
 import CSVFileValidator from 'csv-file-validator';
 // import { FileWithError } from '../components/ValidationError';
@@ -312,6 +313,14 @@ export function validateFile(file: RcFile | string) {
 
 export async function validateFileData(file: RcFile) {
   try {
+    // TODO: usun duplikaty, zapisz nowy plik w temp, uzyj tego pliku w CSVFileValidator
+    // const buffer = fs.readFileSync(file.path);
+    // const data: string[][] = parseCsv(buffer);
+    // const uniqueDataString = new Set(
+    //   data.map((element) => JSON.stringify(element))
+    // );
+    // const uniqueData = Array.from(uniqueDataString, JSON.parse);
+
     const result = await CSVFileValidator(file, getConfig(file.name));
     return { result, file };
   } catch (error) {
@@ -420,6 +429,15 @@ export function getFileNamesFromDir(relativePath: string) {
 
   return { names, filesStandard };
 }
+
+// async function getFile(relativePath: string) {
+//   const file = await fs.createReadStream(
+//     path.join(MAIN_FOLDER_PATH, relativePath)
+//   );
+//   const fileName = path.basename(relativePath);
+//   const blob = await streamToBlob(file, 'text/csv');
+//   return new File([blob], fileName, { type: 'text/csv' });
+// }
 
 export function getFilesFromDir(relativePath: string) {
   const fileNames = getFileNamesFromDir(relativePath);
@@ -653,5 +671,8 @@ export function saveImportConfig(
 ) {
   const currentMetadata = getOrganizationMetadata(organizationFolder);
   const newMetadata = { ...currentMetadata, importConfig: { ...config } };
-  setOrganizationMetadata(organizationFolder, newMetadata);
+  setOrganizationMetadata(
+    organizationFolder,
+    newMetadata as OrganizationMetadata
+  );
 }

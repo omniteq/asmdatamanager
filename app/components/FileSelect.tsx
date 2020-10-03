@@ -54,10 +54,12 @@ import {
   getOrganizationMetadata,
 } from '../services/files';
 import Converter from '../services/converter';
+import validateFk from '../services/fkValidator';
 import ValidationError, {
   FileWithDataValidation,
   FileWithError,
 } from './ValidationError';
+import ValidationErrorForeignKeys from './ValidationErrorForeignKeys';
 import {
   allowedFileNamesASMNoExt,
   allowedFileNamesMSNoExt,
@@ -66,6 +68,7 @@ import parse from '../services/parser';
 import ImportConf from './ImportConf';
 import { Options } from '../converter';
 import useEffectExceptOnMount from '../hooks/useEffectExceptOnMount';
+import { fkValidationSchemaMs } from '../services/validatorConfig';
 
 const { dialog } = remote;
 
@@ -137,6 +140,8 @@ export default function FileSelect() {
   );
 
   const [nextLoading, setNextLoading] = useState(false);
+  // const [fkValidationFailed, setFkValidationFailed] = useState(false);
+
   let wrongFiles: FileWithError[] = [];
   let wrongFilesData: FileWithDataValidation[] = [];
 
@@ -506,24 +511,35 @@ export default function FileSelect() {
 
   const onClickNext = () => {
     setNextLoading(true);
-    clearDbNew()
-      .then(() => {
-        // let data = newFilesData;
-        // if (newFilesStandard === 'MS') {
-        //   data = convertData(newFilesData as FilesDataMS);
-        // }
-        return importData(newFilesData, newFilesStandard);
-      })
-      .then(() => {
-        history.push('/podglad');
-        setNextLoading(false);
-        return true;
-      })
-      .catch((err: any) => {
-        setNextLoading(false);
-        log.error(err);
-        console.error(err);
-      });
+    const fkValidation = validateFk(newFilesData, fkValidationSchemaMs);
+    if (fkValidation) {
+      displayErros(
+        undefined,
+        undefined,
+        <ValidationErrorForeignKeys validateFkResult={fkValidation} />
+      );
+      setNewFilesOk(false);
+      setNextLoading(false);
+    } else {
+      clearDbNew()
+        .then(() => {
+          // let data = newFilesData;
+          // if (newFilesStandard === 'MS') {
+          //   data = convertData(newFilesData as FilesDataMS);
+          // }
+          return importData(newFilesData, newFilesStandard);
+        })
+        .then(() => {
+          history.push('/podglad');
+          setNextLoading(false);
+          return true;
+        })
+        .catch((err: any) => {
+          setNextLoading(false);
+          log.error(err);
+          console.error(err);
+        });
+    }
   };
 
   const onClickBack = () => {
@@ -531,25 +547,35 @@ export default function FileSelect() {
   };
 
   const onDownloadConvertedFiles = () => {
-    const convertedData = new Converter(
-      newFilesData as FilesDataMS,
-      converterConfig
-    ).convertData();
-    const folder = dialog
-      .showOpenDialog({
-        properties: ['openDirectory'],
-      })
-      // eslint-disable-next-line consistent-return
-      .then((selection) => {
-        // eslint-disable-next-line promise/always-return
-        if (!selection.canceled) {
-          return generateFiles(selection.filePaths[0], convertedData);
-        }
-      })
-      .catch((err) => {
-        log.error(err);
-        console.error(err);
-      });
+    const fkValidation = validateFk(newFilesData, fkValidationSchemaMs);
+    if (fkValidation) {
+      displayErros(
+        undefined,
+        undefined,
+        <ValidationErrorForeignKeys validateFkResult={fkValidation} />
+      );
+      setNewFilesOk(false);
+    } else {
+      const convertedData = new Converter(
+        newFilesData as FilesDataMS,
+        converterConfig
+      ).convertData();
+      const folder = dialog
+        .showOpenDialog({
+          properties: ['openDirectory'],
+        })
+        // eslint-disable-next-line consistent-return
+        .then((selection) => {
+          // eslint-disable-next-line promise/always-return
+          if (!selection.canceled) {
+            return generateFiles(selection.filePaths[0], convertedData);
+          }
+        })
+        .catch((err) => {
+          log.error(err);
+          console.error(err);
+        });
+    }
   };
 
   const onConfigChange = (config: Options) => {

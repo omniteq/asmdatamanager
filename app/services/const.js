@@ -34,6 +34,8 @@ const MAIN_FOLDER_PATH = path.join(
 
 const TEMP_FOLDER_PATH = path.join(MAIN_FOLDER_PATH, 'Wsylka w trakcie');
 
+const TEMP_OS_PATH = remote.app.getPath('temp');
+
 export {
   allowedFileNames,
   allowedFileNamesASM,
@@ -42,4 +44,5 @@ export {
   allowedFileNamesMSNoExt,
   MAIN_FOLDER_PATH,
   TEMP_FOLDER_PATH,
+  TEMP_OS_PATH,
 };

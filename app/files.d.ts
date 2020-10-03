@@ -9,6 +9,7 @@ declare module 'files' {
   type AsmLocation = {
     location_id: string;
     location_name: string;
+    [index: string]: string | null | undefined;
   };
 
   type AsmStudent = {
@@ -22,6 +23,7 @@ declare module 'files' {
     sis_username?: string | null;
     password_policy?: 4 | 6 | 8 | null | '4' | '6' | '8' | '';
     location_id: string;
+    [index: string]: string | null | undefined | number;
   };
 
   type AsmStaff = {
@@ -33,12 +35,14 @@ declare module 'files' {
     email_address?: string | null;
     sis_username?: string | null;
     location_id: string;
+    [index: string]: string | null | undefined;
   };
   type AsmCourse = {
     course_id: string;
     course_number?: string | null;
     course_name?: string | null;
     location_id: string;
+    [index: string]: string | null | undefined;
   };
   type AsmClass = {
     class_id: string;
@@ -94,6 +98,36 @@ declare module 'files' {
     instructor_id_48?: string | null;
     instructor_id_49?: string | null;
     instructor_id_50?: string | null;
+    instructor_id_51?: string | null;
+    instructor_id_52?: string | null;
+    instructor_id_53?: string | null;
+    instructor_id_54?: string | null;
+    instructor_id_55?: string | null;
+    instructor_id_56?: string | null;
+    instructor_id_57?: string | null;
+    instructor_id_58?: string | null;
+    instructor_id_59?: string | null;
+    instructor_id_60?: string | null;
+    instructor_id_61?: string | null;
+    instructor_id_62?: string | null;
+    instructor_id_63?: string | null;
+    instructor_id_64?: string | null;
+    instructor_id_65?: string | null;
+    instructor_id_66?: string | null;
+    instructor_id_67?: string | null;
+    instructor_id_68?: string | null;
+    instructor_id_69?: string | null;
+    instructor_id_70?: string | null;
+    instructor_id_71?: string | null;
+    instructor_id_72?: string | null;
+    instructor_id_73?: string | null;
+    instructor_id_74?: string | null;
+    instructor_id_75?: string | null;
+    instructor_id_76?: string | null;
+    instructor_id_77?: string | null;
+    instructor_id_78?: string | null;
+    instructor_id_79?: string | null;
+    instructor_id_80?: string | null;
     location_id: string;
     [index: string]: string | null | undefined;
   };
@@ -101,6 +135,7 @@ declare module 'files' {
     roster_id: string;
     class_id: string;
     student_id: string;
+    [index: string]: string | null | undefined;
   };
 
   export type AsmFile =
@@ -128,6 +163,7 @@ declare module 'files' {
     Status: string | null;
     Birthdate: string | null;
     'Graduation Year': string | null;
+    [index: string]: string | null | undefined;
   };
 
   type MsTeacher = {
@@ -145,6 +181,7 @@ declare module 'files' {
     Status: string | null;
     Title: string | null;
     Qualification: string | null;
+    [index: string]: string | null | undefined;
   };
 
   type MsSchool = {
@@ -165,6 +202,7 @@ declare module 'files' {
     Country: string | null;
     Phone: string | null;
     Zone: string | null;
+    [index: string]: string | null | undefined;
   };
 
   type MsSection = {
@@ -183,16 +221,19 @@ declare module 'files' {
     'Course Subject': string | null;
     Periods: string | null;
     Status: string | null;
+    [index: string]: string | null | undefined;
   };
 
   type MsStudentEnrollement = {
     'Section SIS ID': string;
     'SIS ID': string;
+    [index: string]: string | null | undefined;
   };
 
   type MsTeacherRoster = {
     'Section SIS ID': string;
     'SIS ID': string;
+    [index: string]: string | null | undefined;
   };
 
   export type MsFile =

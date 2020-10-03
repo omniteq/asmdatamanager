@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@types/array-unique@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@types/array-unique/-/array-unique-0.3.0.tgz#4bdab51014680a9fda7b6e6f1ec7f597c2d474fe"
+  integrity sha512-J9HNrHjSt24ubmvyMgsTiE+rvGs2yTeI+luxPa7UF09nrWrBPkQlyVaPB24zXI2wxzypdF6SRAZ1Iza1BFbUew==
+
 "@types/detect-character-encoding@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@types/detect-character-encoding/-/detect-character-encoding-0.7.0.tgz#1465c869c2cde2eead26b965f420994e7048bb10"

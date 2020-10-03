@@ -44,7 +44,7 @@ function generateProperties(
 export function removeEmptyColumns(array: any[], fieldNamePattern: string) {
   // remove unnecessary instructor fields
   let maxInstructor: number;
-  for (let i = 4; i < 51; i += 1) {
+  for (let i = 4; i < 81; i += 1) {
     const nthValues = array.filter((item) => {
       return (
         item[`${fieldNamePattern}${i.toString()}`] &&
@@ -57,7 +57,7 @@ export function removeEmptyColumns(array: any[], fieldNamePattern: string) {
     }
   }
   array.forEach((item) => {
-    for (let i = maxInstructor + 1; i < 51; i += 1) {
+    for (let i = maxInstructor + 1; i < 81; i += 1) {
       delete item[`instructor_id_${i.toString()}`];
     }
   });
@@ -503,7 +503,7 @@ export default class Converter {
                     ? row['Course SIS ID']
                     : (1000 + i).toString()),
                 instructor_id: null,
-                ...generateProperties('instructor_id_', 2, 50),
+                ...generateProperties('instructor_id_', 2, 80),
                 location_id: row['School SIS ID'],
               }) - 1;
           }
