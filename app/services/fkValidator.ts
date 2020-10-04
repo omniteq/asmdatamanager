@@ -56,7 +56,7 @@ export default function validateFk(
       result[primaryFileName] = fileResult;
     }
   });
-  return result;
+  return Object.keys(result).length === 0 ? false : result;
 }
 
 // {

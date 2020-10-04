@@ -41,10 +41,14 @@ function generateProperties(
   return object;
 }
 
-export function removeEmptyColumns(array: any[], fieldNamePattern: string) {
+export function removeEmptyColumns(
+  array: any[],
+  fieldNamePattern: string,
+  fromIndex: number
+) {
   // remove unnecessary instructor fields
   let maxInstructor: number;
-  for (let i = 4; i < 81; i += 1) {
+  for (let i = fromIndex; i < 81; i += 1) {
     const nthValues = array.filter((item) => {
       return (
         item[`${fieldNamePattern}${i.toString()}`] &&
@@ -58,7 +62,7 @@ export function removeEmptyColumns(array: any[], fieldNamePattern: string) {
   }
   array.forEach((item) => {
     for (let i = maxInstructor + 1; i < 81; i += 1) {
-      delete item[`instructor_id_${i.toString()}`];
+      delete item[`${fieldNamePattern}${i.toString()}`];
     }
   });
 }
@@ -213,16 +217,40 @@ export default class Converter {
   private _buildStaff() {
     this._Teacher.forEach((x) => {
       const row = x as MsTeacher;
-      this._templateStaff.push({
-        person_id: row['SIS ID'] ? row['SIS ID'] : '',
-        person_number: row['Teacher Number'] ? row['Teacher Number'] : '',
-        first_name: row['First Name'] ? row['First Name'] : '',
-        middle_name: row['Middle Name'] ? row['Middle Name'] : '',
-        last_name: row['Last Name'] ? row['Last Name'] : '',
-        email_address: row['Secondary Email'] ? row['Secondary Email'] : '',
-        sis_username: row.Username ? row.Username : '',
-        location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
-      });
+      const staffExists = this._templateStaff.findIndex(
+        (person: AsmStaff) => person.person_id === row['SIS ID']
+      );
+
+      if (staffExists === -1) {
+        const locations = this._Teacher
+          .map((item) => {
+            if (item['SIS ID'] === row['SIS ID']) {
+              return item['School SIS ID'];
+            }
+            return undefined;
+          })
+          .filter((value) => value !== undefined);
+
+        this._templateStaff.push({
+          person_id: row['SIS ID'] ? row['SIS ID'] : '',
+          person_number: row['Teacher Number'] ? row['Teacher Number'] : '',
+          first_name: row['First Name'] ? row['First Name'] : '',
+          middle_name: row['Middle Name'] ? row['Middle Name'] : '',
+          last_name: row['Last Name'] ? row['Last Name'] : '',
+          email_address: row['Secondary Email'] ? row['Secondary Email'] : '',
+          sis_username: row.Username ? row.Username : '',
+          location_id: row['School SIS ID'] ? row['School SIS ID'] : '',
+          ...generateProperties(
+            'location_id_',
+            2,
+            10,
+            { indexModificator: -1, arg: locations },
+            (locationIds, index) => {
+              return locationIds[index];
+            }
+          ),
+        });
+      }
     });
   }
 
@@ -591,7 +619,8 @@ export default class Converter {
     } else {
       this._buildCourses();
     }
-    removeEmptyColumns(this._templateClasses, 'instructor_id_');
+    removeEmptyColumns(this._templateClasses, 'instructor_id_', 4);
+    removeEmptyColumns(this._templateStaff, 'location_id_', 2);
     return this._template;
   }
 }

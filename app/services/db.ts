@@ -7,7 +7,7 @@ import log from 'electron-log';
 const db = knex({
   client: 'sqlite3',
   connection: {
-    filename: 'db.db',
+    filename: ':memory:',
   },
   useNullAsDefault: true,
   debug: process.env.NODE_ENV === 'development',
@@ -67,6 +67,14 @@ db.schema
   email_address TEXT,
   sis_username TEXT,
   location_id TEXT NOT NULL,
+  location_id_2 TEXT,
+  location_id_3 TEXT,
+  location_id_4 TEXT,
+  location_id_5 TEXT,
+  location_id_6 TEXT,
+  location_id_7 TEXT,
+  location_id_8 TEXT,
+  location_id_10 TEXT,
   historical INTEGER DEFAULT 0,
   PRIMARY KEY(person_id, historical),
   FOREIGN KEY(location_id, historical) REFERENCES locations(location_id, historical),
