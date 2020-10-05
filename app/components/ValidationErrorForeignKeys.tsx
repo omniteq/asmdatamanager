@@ -5,17 +5,25 @@ import { FkValidationRule } from '../services/fkValidator';
 const { Title, Text, Paragraph } = Typography;
 
 export default function ValidationErrorForeignKeys(props: any) {
-  const { validateFkResult } = props;
+  const { validateFkResult, allowToContinue } = props;
   const fileNames = Object.keys(validateFkResult);
   const list = fileNames.map((fileName) => {
     return (
       <>
         <Paragraph>
-          <Alert
-            message="Klucze obce czyli wartości w kolumnach typu _id lub SIS ID
+          {!allowToContinue ? (
+            <Alert
+              message="Klucze obce czyli wartości w kolumnach typu _id lub SIS ID
                   muszą istnieć w powiązanych plikach."
-            type="error"
-          />
+              type="error"
+            />
+          ) : (
+            <Alert
+              message="Klucze obce czyli wartości w kolumnach typu _id lub SIS ID
+                  nie istnieją w powiązanych plikach. Możesz zignorować ten błąd."
+              type="warning"
+            />
+          )}
         </Paragraph>
         <div>
           Błąd kluczy obcych w pliku: <Text strong>{fileName}</Text>

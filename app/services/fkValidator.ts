@@ -1,5 +1,9 @@
 import { AsmFile, FileNamesASM, FileNamesMS, FilesData, MsFile } from 'files';
 
+type ValidationResult = {
+  [index: string]: string | null | undefined | any[][];
+};
+
 export type FkValidationRule = {
   fk: string;
   fileName: FileNamesASM | FileNamesMS;
@@ -14,7 +18,7 @@ export default function validateFk(
   data: FilesData,
   schema: FkValidationSchema
 ) {
-  const result: { [index: string]: string | null | undefined | any[][] } = {};
+  const result: ValidationResult = {};
   // for each file to validate
   Object.keys(schema).forEach((primaryFileName) => {
     // for each configuration
@@ -59,40 +63,29 @@ export default function validateFk(
   return Object.keys(result).length === 0 ? false : result;
 }
 
-// {
-//     student: [
-//       {
-//         fk: 'School SIS ID',
-//         fileName: 'school',
-//         pk: 'SIS ID',
-//       },
-//     ],
-//     section: [
-//       {
-//         fk: 'School SIS ID',
-//         fileName: 'school',
-//         pk: 'SIS ID',
-//       },
-//     ],
-//     studentenrollment: [
-//       {
-//         fk: 'SIS ID',
-//         fileName: 'student',
-//         pk: 'SIS ID',
-//       },
-//     ],
-//     teacher: [
-//       {
-//         fk: 'School SIS ID',
-//         fileName: 'school',
-//         pk: 'SIS ID',
-//       },
-//     ],
-//     teacherroster: [
-//       {
-//         fk: 'SIS ID',
-//         fileName: 'teacher',
-//         pk: 'SIS ID',
-//       },
-//     ],
-//   }
+export function removeBadData(
+  newFilesData: FilesData,
+  result: ValidationResult,
+  filesToClear: FileNamesASM[] | FileNamesMS[]
+): FilesData {
+  const cleardNewFilesData = JSON.parse(JSON.stringify(newFilesData));
+  filesToClear.forEach((fileName: FileNamesASM | FileNamesMS) => {
+    const fileResult = result[fileName];
+    const filesDataIndex = newFilesData.findIndex((element) =>
+      Object.prototype.hasOwnProperty.call(element, fileName)
+    );
+    if (Array.isArray(fileResult)) {
+      fileResult.forEach((arrayOfErrors) => {
+        arrayOfErrors.forEach((error) => {
+          const filteredData = newFilesData[filesDataIndex][
+            fileName
+          ].data.filter((row) => {
+            return row[error.config.fk] !== error.row[error.config.fk];
+          });
+          cleardNewFilesData[filesDataIndex][fileName].data = filteredData;
+        });
+      });
+    }
+  });
+  return cleardNewFilesData;
+}

@@ -54,7 +54,7 @@ import {
   getOrganizationMetadata,
 } from '../services/files';
 import Converter from '../services/converter';
-import validateFk from '../services/fkValidator';
+import validateFk, { removeBadData } from '../services/fkValidator';
 import ValidationError, {
   FileWithDataValidation,
   FileWithError,
@@ -192,14 +192,16 @@ export default function FileSelect() {
   const displayErros = (
     wrongFilesDis?: FileWithError[],
     wrongFilesDataDis?: FileWithDataValidation[],
-    mscError?: any
+    mscError?: any,
+    type?: 'warning' | 'error'
   ) => {
     if (
       (wrongFilesDis && wrongFilesDis.length > 0) ||
       (wrongFilesDataDis && wrongFilesDataDis.length > 0) ||
       mscError
     ) {
-      Modal.error({
+      const modalType = type || 'error';
+      Modal[modalType]({
         width: '700px',
         title: 'Niepoprawne pliki',
         content: (
@@ -509,25 +511,50 @@ export default function FileSelect() {
     setPassPolicy(value);
   };
 
-  const onClickNext = () => {
-    setNextLoading(true);
+  const validateFilesFk = () => {
     const fkValidation = validateFk(newFilesData, fkValidationSchemaMs);
+    const acceptedFilesWithErrors = ['studentenrollment', 'teacherroster'];
+    let newFilesDataToConvert = newFilesData;
+    let allowToContinue =
+      Object.keys(fkValidation).every((element) =>
+        acceptedFilesWithErrors.includes(element)
+      ) || Object.keys(fkValidation).length < 1;
     if (fkValidation) {
       displayErros(
         undefined,
         undefined,
-        <ValidationErrorForeignKeys validateFkResult={fkValidation} />
+        <ValidationErrorForeignKeys
+          validateFkResult={fkValidation}
+          allowToContinue={allowToContinue}
+        />,
+        'warning'
       );
-      setNewFilesOk(false);
-      setNextLoading(false);
-    } else {
+      const clearedNewFilesData = removeBadData(
+        newFilesData,
+        fkValidation,
+        acceptedFilesWithErrors
+      );
+      if (!allowToContinue) {
+        setNewFilesOk(false);
+        allowToContinue = false;
+      } else {
+        newFilesDataToConvert = clearedNewFilesData;
+      }
+    }
+    return { allowToContinue, newFilesDataToConvert };
+  };
+
+  const onClickNext = () => {
+    setNextLoading(true);
+    const { allowToContinue, newFilesDataToConvert } = validateFilesFk();
+    if (allowToContinue) {
       clearDbNew()
         .then(() => {
           // let data = newFilesData;
           // if (newFilesStandard === 'MS') {
           //   data = convertData(newFilesData as FilesDataMS);
           // }
-          return importData(newFilesData, newFilesStandard);
+          return importData(newFilesDataToConvert, newFilesStandard);
         })
         .then(() => {
           history.push('/podglad');
@@ -539,6 +566,9 @@ export default function FileSelect() {
           log.error(err);
           console.error(err);
         });
+    } else {
+      setNewFilesOk(false);
+      setNextLoading(false);
     }
   };
 
@@ -547,17 +577,10 @@ export default function FileSelect() {
   };
 
   const onDownloadConvertedFiles = () => {
-    const fkValidation = validateFk(newFilesData, fkValidationSchemaMs);
-    if (fkValidation) {
-      displayErros(
-        undefined,
-        undefined,
-        <ValidationErrorForeignKeys validateFkResult={fkValidation} />
-      );
-      setNewFilesOk(false);
-    } else {
+    const { allowToContinue, newFilesDataToConvert } = validateFilesFk();
+    if (allowToContinue) {
       const convertedData = new Converter(
-        newFilesData as FilesDataMS,
+        newFilesDataToConvert as FilesDataMS,
         converterConfig
       ).convertData();
       const folder = dialog
@@ -575,6 +598,8 @@ export default function FileSelect() {
           log.error(err);
           console.error(err);
         });
+    } else {
+      setNewFilesOk(false);
     }
   };
 
