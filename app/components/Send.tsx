@@ -174,7 +174,8 @@ export default function Send() {
         template[5].rosters!.data = removeHistoricalProperty(result);
 
         // remove unnecessary instructor field
-        removeEmptyColumns(template[4].classes!.data!, 'instructor_id_');
+        removeEmptyColumns(template[4].classes!.data!, 'instructor_id_', 4);
+        removeEmptyColumns(template[2].staff!.data, 'location_id_', 2);
 
         setData(template as FilesDataASM);
         return true;
