@@ -32,6 +32,8 @@ import {
   FilesDataASM,
   FilesDataMS,
   AsmStudent,
+  FileNamesASM,
+  FileNamesMS,
 } from 'files';
 import { remote } from 'electron';
 import Progress from './Progress';
@@ -513,11 +515,14 @@ export default function FileSelect() {
 
   const validateFilesFk = () => {
     const fkValidation = validateFk(newFilesData, fkValidationSchemaMs);
-    const acceptedFilesWithErrors = ['studentenrollment', 'teacherroster'];
+    const acceptedFilesWithErrors: FileNamesASM[] | FileNamesMS[] = [
+      'studentenrollment',
+      'teacherroster',
+    ];
     let newFilesDataToConvert = newFilesData;
     let allowToContinue =
       Object.keys(fkValidation).every((element) =>
-        acceptedFilesWithErrors.includes(element)
+        acceptedFilesWithErrors.includes(element as FileNamesMS)
       ) || Object.keys(fkValidation).length < 1;
     if (fkValidation) {
       displayErros(
