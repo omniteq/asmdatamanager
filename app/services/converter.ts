@@ -35,7 +35,7 @@ function generateProperties(
         i + valueParam.indexModificator
       );
     } else {
-      object[name + i] = null;
+      object[name + i] = '';
     }
   }
   return object;
@@ -530,7 +530,7 @@ export default class Converter {
                   i === 0
                     ? row['Course SIS ID']
                     : (1000 + i).toString()),
-                instructor_id: null,
+                instructor_id: '',
                 ...generateProperties('instructor_id_', 2, 80),
                 location_id: row['School SIS ID'],
               }) - 1;
@@ -569,7 +569,11 @@ export default class Converter {
                 );
               });
               const instructorsCount = classesEntries.filter((pair) => {
-                return pair[0].includes('instructor_id') && pair[1] !== null;
+                return (
+                  pair[0].includes('instructor_id') &&
+                  pair[1] !== null &&
+                  pair[1] !== ''
+                );
               }).length;
 
               // if not, add id to the first empty instructor_id_x field

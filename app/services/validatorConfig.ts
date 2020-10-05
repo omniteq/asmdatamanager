@@ -217,6 +217,51 @@ const asmStaff = {
       inputName: 'location_id',
       ...fkConstrains,
     },
+    {
+      name: 'location_id_2',
+      inputName: 'location_id_2',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_3',
+      inputName: 'location_id_3',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_4',
+      inputName: 'location_id_4',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_5',
+      inputName: 'location_id_5',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_6',
+      inputName: 'location_id_6',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_7',
+      inputName: 'location_id_7',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_8',
+      inputName: 'location_id_8',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_9',
+      inputName: 'location_id_9',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'location_id_10',
+      inputName: 'location_id_10',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
   ],
 };
 
@@ -299,11 +344,21 @@ const asmClasses = {
     },
     {
       name: 'instructor_id_8',
+      inputName: 'instructor_id_8',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_9',
       inputName: 'instructor_id_9',
       ...optionalColumnOptionalDataConstrains(256),
     },
     {
       name: 'instructor_id_10',
+      inputName: 'instructor_id_10',
+      ...optionalColumnOptionalDataConstrains(256),
+    },
+    {
+      name: 'instructor_id_11',
       inputName: 'instructor_id_11',
       ...optionalColumnOptionalDataConstrains(256),
     },

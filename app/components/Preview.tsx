@@ -172,6 +172,8 @@ export default function Preview() {
           newData[2],
           'person_id'
         );
+        console.log(diffClasses);
+        console.log(historicalData[1]);
         if (isMounted) setData({ diffStudents, diffClasses, diffStaff });
         return 'done';
       })
