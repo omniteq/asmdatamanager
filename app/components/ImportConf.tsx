@@ -239,25 +239,28 @@ export default function ImportConf(props: {
     }
   }, []);
 
-  useEffect(() => {
-    let text = (newFilesData[sectionFileIndex]?.section
-      ?.data as MsSection[])?.[1]?.[classNumberColumnName];
-    if (classNumberStrToRemove?.length > 0 && text !== null) {
-      const arrayClassNumberStrToRemove = splitString(classNumberStrToRemove)!;
-      text = removeSubstrings(text, arrayClassNumberStrToRemove);
+  const parsePreview = (
+    text: string | null,
+    strToRemove: string
+  ): string | null => {
+    if (strToRemove?.length > 0 && text !== null) {
+      const arrayStrToRemove = splitString(strToRemove)!;
+      return removeSubstrings(text, arrayStrToRemove);
     }
-    setClassNumberPreview(text);
-  }, [classNumberColumnName, classNumberStrToRemove]);
+    return text;
+  };
 
   useEffect(() => {
-    let text: string | null | undefined = (newFilesData[sectionFileIndex]
-      ?.section?.data as MsSection[])?.[1]?.[subjectColumnName];
-    if (subjectNameStrToRemove?.length > 0 && text !== null) {
-      const arraySubjectNameStrToRemove = splitString(subjectNameStrToRemove)!;
-      text = removeSubstrings(text, arraySubjectNameStrToRemove);
-    }
-    setSubjectNamePreview(text);
-  }, [subjectColumnName, subjectNameStrToRemove]);
+    const text = (newFilesData[sectionFileIndex]?.section
+      ?.data as MsSection[])?.[1]?.[classNumberColumnName];
+    setClassNumberPreview(parsePreview(text, classNumberStrToRemove));
+  }, [classNumberColumnName, classNumberStrToRemove, classNumberPreview]);
+
+  useEffect(() => {
+    const text = (newFilesData[sectionFileIndex]?.section
+      ?.data as MsSection[])?.[1]?.[subjectColumnName];
+    setSubjectNamePreview(parsePreview(text, subjectNameStrToRemove));
+  }, [subjectColumnName, subjectNameStrToRemove, subjectNamePreview]);
 
   const radioStyle = {
     display: 'block',
@@ -386,20 +389,27 @@ export default function ImportConf(props: {
     subject,
   ]);
   useEffectExceptOnMount(() => {
-    setSubjectNamePreview(
-      (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
-        subjectColumnName
-      ]
-    );
-    setClassNumberPreview(
-      (newFilesData[sectionFileIndex]?.section?.data as MsSection[])?.[1]?.[
-        classNumberColumnName
-      ]
-    );
-    setSelectionClassNumber(null);
-    setSelectionSubjectName(null);
-    localStorage.removeItem('selectionClassNumber');
-    localStorage.removeItem('selectionSubjectName');
+    const newClassNumberPreview = (newFilesData[sectionFileIndex]?.section
+      ?.data as MsSection[])?.[1]?.[classNumberColumnName];
+    const newSubjectNamePreview = (newFilesData[sectionFileIndex]?.section
+      ?.data as MsSection[])?.[1]?.[subjectColumnName];
+    setClassNumberPreview(newClassNumberPreview);
+    setSubjectNamePreview(newSubjectNamePreview);
+
+    if (
+      parsePreview(newClassNumberPreview, classNumberStrToRemove) !==
+      classNumberPreview
+    ) {
+      setSelectionClassNumber(null);
+      localStorage.removeItem('selectionClassNumber');
+    }
+    if (
+      parsePreview(newSubjectNamePreview, subjectNameStrToRemove) !==
+      subjectNamePreview
+    ) {
+      setSelectionSubjectName(null);
+      localStorage.removeItem('selectionSubjectName');
+    }
   }, [newFilesData]);
 
   return (

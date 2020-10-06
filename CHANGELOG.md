@@ -1,3 +1,8 @@
+# 1.0.18
+
+- poprawa błędów porównywania historycznych danych z nowymi plikami
+- poprawa odtwarzania podglądu numeru klasy/nazwy przedmiotu z uwzględnieneim fragmentów do usunięcia i zaznaczenia (zaznaczenie znika tylko jeśli nowy plik zawiera inny tekst)
+
 # 1.0.17
 
 - zwiększenie liczby instruktorów z 50 do 80 dla pojedynczej klasy
